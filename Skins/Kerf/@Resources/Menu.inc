@@ -1,6 +1,7 @@
 [Rainmeter]
 Group=Kerf
 AccurateText=1
+OnRefreshAction=[!ZPos -2]
 ContextTitle=Align: auto (by screen position)
 ContextAction=[!WriteKeyValue Variables AlignMode 0][!Refresh]
 ContextTitle2=Align: left
