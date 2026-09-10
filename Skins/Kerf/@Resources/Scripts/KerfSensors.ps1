@@ -125,6 +125,10 @@ while ($true) {
     }
     $gpu = Read-Gpu $adapters
     $cpu = Read-Cpu
+    if ($gpu.Temp -eq '' -and $cpu -ne '' -and ($adapters | Where-Object Integrated)) {
+        $ig = $adapters | Where-Object Integrated | Select-Object -First 1
+        $gpu = [pscustomobject]@{ Temp = $cpu; Kind = 'iGPU'; Name = "$($ig.Name) (shares CPU die)" }
+    }
     if ($Once) {
         $adapters | ForEach-Object { '{0,-45} integrated={1} temp={2}' -f $_.Name, $_.Integrated, ([KerfKmt]::TempDeci($_.Handle) / 10) }
         'Thermal zones: ' + (($script:zones | ForEach-Object Name) -join ', ')
