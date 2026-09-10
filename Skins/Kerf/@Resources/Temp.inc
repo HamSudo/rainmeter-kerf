@@ -1,11 +1,17 @@
 [mLaunch]
 Measure=Plugin
 Plugin=RunCommand
-Program=powershell.exe
-Parameter=-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "#@#Scripts\KerfSensors.ps1"
+Program="#@#Bin\KerfSensors.exe"
 State=Hide
-OutputType=ANSI
 Timeout=-1
+
+[mBuild]
+Measure=Plugin
+Plugin=RunCommand
+Program="%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+Parameter=/nologo /target:winexe /optimize /out:"#@#Bin\KerfSensors.exe" "#@#Bin\KerfSensors.cs"
+State=Hide
+FinishAction=[!CommandMeasure mLaunch "Run"]
 
 [mTick]
 Measure=Registry
