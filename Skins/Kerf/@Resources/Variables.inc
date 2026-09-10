@@ -19,11 +19,10 @@ TagFormat=24H
 
 ; Music line
 WaveWidth=330
-WaveHeight=40
+WaveHeight=28
 WaveAmp=0.45
 WaveStroke=1.5
 WaveSensitivity=40
-WaveMarker=1
 
 ; Date row width, set by the clock (0 = natural)
 DateRowW=0

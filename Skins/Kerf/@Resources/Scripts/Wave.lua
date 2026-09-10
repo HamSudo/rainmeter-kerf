@@ -5,7 +5,6 @@ function Initialize()
     bands[i] = SKIN:GetMeasure('mBand' .. i)
     sm[i] = 0
   end
-  lastSec, secStart = -1, os.clock()
 end
 
 local function num(v) return tonumber(SKIN:ParseFormula(SKIN:ReplaceVariables(v))) end
@@ -38,17 +37,6 @@ function Update()
   end
   p[#p + 1] = 'LineTo ' .. f(pts[N - 1][1]) .. ',' .. f(pts[N - 1][2])
   SKIN:Bang('!SetOption', 'MeterWave', 'WavePath', table.concat(p, ' | '))
-
-  local t = os.date('*t')
-  if t.sec ~= lastSec then lastSec, secStart = t.sec, os.clock() end
-  local pos = math.min(0.999, (t.sec + math.min(os.clock() - secStart, 0.99)) / 60)
-  local a0, a1 = math.max(0.001, pos - 0.07), math.min(0.998, pos + 0.02)
-  local acc = SKIN:GetVariable('AccInk')
-  local on = num('(#WaveMarker#)') > 0
-  local grad = '0 | ' .. acc .. ',0 ; 0.0 | ' .. acc .. ',0 ; ' .. f(a0) .. ' | ' .. acc .. ',255 ; ' .. string.format('%.3f', pos) .. ' | ' .. acc .. ',0 ; ' .. f(a1) .. ' | ' .. acc .. ',0 ; 1.0'
-  SKIN:Bang('!SetOption', 'MeterWave', 'AccGrad', grad)
-  SKIN:Bang('!SetOption', 'MeterWave', 'Shape3', 'Rectangle ' .. f(pos * W - scale) .. ',' .. f(mid - 7 * scale) .. ',' .. f(2 * scale) .. ',' .. f(14 * scale) .. ' | Fill Color ' .. acc .. ',' .. (on and '255' or '0') .. ' | StrokeWidth 0')
-  if not on then SKIN:Bang('!SetOption', 'MeterWave', 'AccGrad', '0 | ' .. acc .. ',0 ; 0.0 | ' .. acc .. ',0 ; 1.0') end
   SKIN:Bang('!UpdateMeter', 'MeterWave')
   SKIN:Bang('!Redraw')
   return 0
