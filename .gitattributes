@@ -1,0 +1,6 @@
+* text=auto
+*.ini text working-tree-encoding=UTF-16LE-BOM eol=crlf
+*.inc text working-tree-encoding=UTF-16LE-BOM eol=crlf
+*.dll binary
+*.ttf binary
+*.otf binary
