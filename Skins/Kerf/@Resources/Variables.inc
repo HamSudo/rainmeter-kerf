@@ -16,6 +16,9 @@ MicroTracking=2
 ; Scale: 1.00 at 1080p, 1.33 at 1440p, 2.00 at 4K
 Scale=1.00
 
+; Alignment margin (px)
+EdgeMargin=48
+
 ; Clock
 TimeFormat=%H:%M
 TagFormat=24H

@@ -1,6 +1,10 @@
+[mAlignScript]
+Measure=Script
+ScriptFile=#@#Scripts\Align.lua
+
 [mAlign]
 Measure=Calc
-Formula=(#AlignMode# > 0) ? #AlignMode# : (((#CURRENTCONFIGX# + #CURRENTCONFIGWIDTH# / 2 - #SCREENAREAX#) < (#SCREENAREAWIDTH# / 3)) ? 1 : (((#CURRENTCONFIGX# + #CURRENTCONFIGWIDTH# / 2 - #SCREENAREAX#) > (#SCREENAREAWIDTH# * 2 / 3)) ? 3 : 2))
+Formula=(#AlignMode# > 0) ? #AlignMode# : (((#CURRENTCONFIGX# + #CURRENTCONFIGWIDTH# / 2 - #WORKAREAX#) < (#WORKAREAWIDTH# / 3)) ? 1 : (((#CURRENTCONFIGX# + #CURRENTCONFIGWIDTH# / 2 - #WORKAREAX#) > (#WORKAREAWIDTH# * 2 / 3)) ? 3 : 2))
 DynamicVariables=1
 IfCondition=mAlign = 1
 IfTrueAction=[!SetVariable AF 0][!UpdateMeter *][!Redraw]
