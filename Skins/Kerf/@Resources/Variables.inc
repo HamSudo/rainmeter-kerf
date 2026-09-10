@@ -48,8 +48,8 @@ A3=128
 A4=77
 
 ; HWiNFO Gadget slots (-1 = find the sensor automatically)
-CPUIndex=0
-GPUIndex=1
+CPUIndex=-1
+GPUIndex=-1
 
 ; Temperature range (C)
 TempMin=30
