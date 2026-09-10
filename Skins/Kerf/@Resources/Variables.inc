@@ -33,6 +33,7 @@ AccentOnLight=150,114,46
 InkMode=0
 InkThreshold=0.30
 InkDivider=1
+WEConfig=C:\Program Files (x86)\Steam\steamapps\common\wallpaper_engine\config.json
 InkLight=244,246,248
 InkDark=17,22,27
 HaloLight=0,0,0
