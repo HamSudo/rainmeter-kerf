@@ -31,7 +31,8 @@ AccentOnLight=150,114,46
 
 ; Ink: 0 auto, 1 light, 2 dark
 InkMode=0
-InkThreshold=0.55
+InkThreshold=0.30
+InkDivider=1
 InkLight=244,246,248
 InkDark=17,22,27
 HaloLight=0,0,0
