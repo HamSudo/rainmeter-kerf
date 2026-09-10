@@ -1,58 +1,59 @@
-local G = 8
-local M = 120
+local K = 4
+local M = 96
+local CURVES = {
+  { 'PathE2', -2 },
+  { 'PathE1', 3 },
+  { 'PathMain', 1 },
+}
 
 function Initialize()
-  N = tonumber(SELF:GetOption('Bands', '24'))
-  per = N / G
-  bands, env, phase = {}, {}, {}
-  for i = 0, N - 1 do bands[i] = SKIN:GetMeasure('mBand' .. i) end
-  for g = 1, G do env[g], phase[g] = 0, math.random() * 6.283 end
-  last = os.clock()
+  level = SKIN:GetMeasure('mLevel')
+  timeMeter = SKIN:GetMeter('MeterTime')
+  amp, phase, last, flat = 0, 0, os.clock(), false
 end
 
 local function num(v) return tonumber(SKIN:ParseFormula(SKIN:ReplaceVariables(v))) or 0 end
 local function f(v) return string.format('%.2f', v) end
 
+local function envelope(x)
+  return (K / (K + x ^ 4)) ^ K
+end
+
 function Update()
+  if num('#ShowWave#') == 0 then return 0 end
+
   local now = os.clock()
-  local dt = math.min(0.1, math.max(0.001, now - last))
+  local frames = math.min(6, math.max(0.1, (now - last) * 60))
   last = now
 
-  local scale = num('(#Scale#)')
-  local W     = num('(#WaveWidth#*#Scale#)')
-  local H     = num('(#WaveHeight#*#Scale#)')
-  local amp   = num('(#WaveAmp#)')
-  local mid   = H / 2
-  local A     = amp * (H / 2 - 1.5 * scale)
+  local target = math.min(1, math.max(0, level and level:GetValue() or 0))
+  amp = amp + (target - amp) * (1 - 0.9 ^ frames)
+  local speed = num('#WaveSpeed#') * (0.6 + 0.8 * amp)
+  phase = (phase + math.pi / 2 * speed * frames) % (2 * math.pi)
 
-  for g = 1, G do
-    local s = 0
-    for j = 0, per - 1 do
-      local b = bands[(g - 1) * per + j]
-      s = s + (b and b:GetValue() or 0)
-    end
-    s = s / per
-    env[g] = env[g] + (s - env[g]) * (s > env[g] and 0.22 or 0.05)
-    phase[g] = phase[g] + dt * (0.8 + g * 0.55) * (0.5 + env[g] * 2.5)
+  if amp < 0.003 then
+    if flat then return 0 end
+    flat = true
+  else
+    flat = false
   end
 
-  local p = {}
-  for k = 0, M do
-    local u = k / M
-    local y = 0
-    for g = 1, G do
-      local freq = 1.2 + (g - 1) * 1.25
-      local weight = 1.3 - (g - 1) * 0.12
-      y = y + env[g] * weight * math.sin(6.283 * freq * u - phase[g])
-    end
-    y = y / 2.6
-    if y > 1 then y = 1 elseif y < -1 then y = -1 end
-    local win = math.sin(math.pi * u) ^ 1.3
-    local px, py = u * W, mid - y * A * win
-    p[#p + 1] = (k == 0 and '' or 'LineTo ') .. f(px) .. ',' .. f(py)
-  end
+  local scale = num('#Scale#')
+  local W = timeMeter:GetW()
+  local H = num('#WaveHeight#') * scale
+  local mid = H / 2
+  local hmax = (H / 2 - 1.5 * scale) * num('#WaveAmp#') * amp
+  local freq = num('#WaveFrequency#')
 
-  SKIN:Bang('!SetOption', 'MeterWave', 'WavePath', table.concat(p, ' | '))
+  for _, c in ipairs(CURVES) do
+    local p = {}
+    for k = 0, M do
+      local x = -2 + 4 * k / M
+      local y = envelope(x) * hmax / c[2] * math.sin(freq * x - phase)
+      p[#p + 1] = (k == 0 and '' or 'LineTo ') .. f(W * k / M) .. ',' .. f(mid - y)
+    end
+    SKIN:Bang('!SetOption', 'MeterWave', c[1], table.concat(p, ' | '))
+  end
   SKIN:Bang('!UpdateMeter', 'MeterWave')
   SKIN:Bang('!Redraw')
   return 0
