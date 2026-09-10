@@ -1,26 +1,50 @@
-function Initialize()
-  avg = SKIN:GetMeasure('mAvgColor')
-  cfg = SKIN:GetVariable('WEConfig', '')
-  every = tonumber(SELF:GetOption('CheckEvery', '20'))
-  n, current = 0, false
-  CheckSource()
-end
-
 local function exists(p)
+  if not p or p == '' then return false end
   local h = io.open(p, 'rb')
   if h then h:close() return true end
   return false
 end
 
-local function wallpaperEnginePreview()
-  if cfg == '' then return nil end
+local function m(name) return SKIN:GetMeasure(name) end
+
+function Initialize()
+  avg, we64, we32 = m('mAvgColor'), m('mWE64'), m('mWE32')
+  bgType, bgColor, winWall, steam = m('mBgType'), m('mBgColor'), m('mWinWall'), m('mSteamPath')
+  every = tonumber(SELF:GetOption('CheckEvery', '20'))
+  n, kind, source, weCfg = 0, nil, nil, nil
+end
+
+local function findWEConfig()
+  if exists(weCfg) then return weCfg end
+  local candidates = {}
+  local override = SKIN:GetVariable('WEConfig', '')
+  if override ~= '' then candidates[#candidates + 1] = override end
+  local root = (steam and steam:GetStringValue() or ''):gsub('/', '\\')
+  if root ~= '' then
+    candidates[#candidates + 1] = root .. '\\steamapps\\common\\wallpaper_engine\\config.json'
+    local f = io.open(root .. '\\steamapps\\libraryfolders.vdf', 'r')
+    if f then
+      for p in f:read('*a'):gmatch('"path"%s*"([^"]+)"') do
+        candidates[#candidates + 1] = p:gsub('\\\\', '\\') .. '\\steamapps\\common\\wallpaper_engine\\config.json'
+      end
+      f:close()
+    end
+  end
+  for _, c in ipairs(candidates) do
+    if exists(c) then weCfg = c return c end
+  end
+  return nil
+end
+
+local function wePreview()
+  local cfg = findWEConfig()
+  if not cfg then return nil end
   local f = io.open(cfg, 'r')
   if not f then return nil end
   local t = f:read('*a')
   f:close()
   local s = t:find('"wallpaperconfig"%s*:')
-  if not s then return nil end
-  local file = t:match('"file"%s*:%s*"([^"]+)"', s)
+  local file = s and t:match('"file"%s*:%s*"([^"]+)"', s)
   local dir = file and file:match('^(.*)/[^/]*$')
   if not dir then return nil end
   for _, name in ipairs({ 'preview.jpg', 'preview.png', 'preview.gif' }) do
@@ -30,18 +54,35 @@ local function wallpaperEnginePreview()
   return nil
 end
 
+local function weRunning()
+  return (we64 and we64:GetValue() > 0) or (we32 and we32:GetValue() > 0)
+end
+
 function CheckSource()
-  local src = wallpaperEnginePreview()
-  if src == current then return end
-  current = src
+  local k, src = 'none', nil
+  if weRunning() then src = wePreview() if src then k = 'we' end end
+  if k == 'none' then
+    if bgType and bgType:GetValue() == 1 then
+      k = 'solid'
+    elseif winWall and winWall:GetStringValue() ~= '' then
+      k = 'desktop'
+    else
+      src = (os.getenv('APPDATA') or '') .. '\\Microsoft\\Windows\\Themes\\TranscodedWallpaper'
+      if exists(src) then k = 'file' else src = nil end
+    end
+  end
+  if k == kind and src == source then return end
+  kind, source = k, src
   if src then
     SKIN:Bang('!SetOption', 'mChameleon', 'Type', 'File')
     SKIN:Bang('!SetOption', 'mChameleon', 'Path', src)
   else
     SKIN:Bang('!SetOption', 'mChameleon', 'Type', 'Desktop')
   end
+  SKIN:Bang('!SetVariable', 'InkSource', k)
   SKIN:Bang('!UpdateMeasure', 'mChameleon')
   SKIN:Bang('!UpdateMeasure', 'mAvgColor')
+  print('Kerf ink source: ' .. k .. (src and (' (' .. src .. ')') or ''))
 end
 
 local function lin(c)
@@ -50,9 +91,19 @@ local function lin(c)
   return ((c + 0.055) / 1.055) ^ 2.4
 end
 
+local function luminance(r, g, b)
+  return 0.2126 * lin(tonumber(r)) + 0.7152 * lin(tonumber(g)) + 0.0722 * lin(tonumber(b))
+end
+
 function Update()
+  if kind == nil or n >= every then n = 0 CheckSource() end
   n = n + 1
-  if n >= every then n = 0 CheckSource() end
+
+  if kind == 'none' then return 0 end
+  if kind == 'solid' then
+    local r, g, b = (bgColor and bgColor:GetStringValue() or ''):match('(%d+)%s+(%d+)%s+(%d+)')
+    return r and luminance(r, g, b) or 0
+  end
 
   local s = avg and avg:GetStringValue() or ''
   local r, g, b = s:match('(%d+)%s*,%s*(%d+)%s*,%s*(%d+)')
@@ -61,5 +112,5 @@ function Update()
     if not h then return 0 end
     r, g, b = tonumber(h:sub(1, 2), 16), tonumber(h:sub(3, 4), 16), tonumber(h:sub(5, 6), 16)
   end
-  return 0.2126 * lin(tonumber(r)) + 0.7152 * lin(tonumber(g)) + 0.0722 * lin(tonumber(b))
+  return luminance(r, g, b)
 end
