@@ -1,0 +1,21 @@
+[Rainmeter]
+Group=Kerf
+AccurateText=1
+ContextTitle=Align: auto (by screen position)
+ContextAction=[!WriteKeyValue Variables AlignMode 0][!Refresh]
+ContextTitle2=Align: left
+ContextAction2=[!WriteKeyValue Variables AlignMode 1][!Refresh]
+ContextTitle3=Align: centre
+ContextAction3=[!WriteKeyValue Variables AlignMode 2][!Refresh]
+ContextTitle4=Align: right
+ContextAction4=[!WriteKeyValue Variables AlignMode 3][!Refresh]
+ContextTitle5=Ink: auto
+ContextAction5=[!WriteKeyValue Variables InkMode 0 "#@#Variables.inc"][!RefreshGroup Kerf]
+ContextTitle6=Ink: always light
+ContextAction6=[!WriteKeyValue Variables InkMode 1 "#@#Variables.inc"][!RefreshGroup Kerf]
+ContextTitle7=Ink: always dark
+ContextAction7=[!WriteKeyValue Variables InkMode 2 "#@#Variables.inc"][!RefreshGroup Kerf]
+ContextTitle8=Open Kerf settings
+ContextAction8=["#@#Variables.inc"]
+ContextTitle9=Refresh all Kerf modules
+ContextAction9=[!RefreshGroup Kerf]
