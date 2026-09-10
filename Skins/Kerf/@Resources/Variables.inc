@@ -25,6 +25,9 @@ WaveStroke=1.5
 WaveSensitivity=40
 WaveMarker=1
 
+; Date row width, set by the clock (0 = natural)
+DateRowW=0
+
 ; Accent
 Accent=242,184,75
 AccentOnLight=150,114,46
