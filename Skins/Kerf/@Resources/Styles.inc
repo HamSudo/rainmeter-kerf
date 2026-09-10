@@ -6,6 +6,7 @@ FontColor=#Ink#,#A1#
 InlineSetting=Shadow | 0 | 1 | 4 | #Halo#,70
 
 [sMono]
+InlineSetting=Shadow | 0 | 1 | 3 | #Halo#,150
 FontFace=#MonoFace#
 FontWeight=400
 FontSize=(8*#Scale#)
