@@ -49,9 +49,9 @@ HaloDark=255,255,255
 
 ; Opacity (0-255)
 A1=255
-A2=189
-A3=128
-A4=77
+A2=200
+A3=150
+A4=90
 
 ; Temperature range (C)
 TempMin=30
