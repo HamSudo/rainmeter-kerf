@@ -7,7 +7,9 @@ local STOPS = {
 }
 
 function Initialize()
-  pct = SKIN:GetMeasure('mTempPct')
+  pct = SKIN:GetMeasure(SELF:GetOption('Pct', 'mTempPct'))
+  var = SELF:GetOption('Var', 'Heat')
+  meter = SELF:GetOption('Meter', 'MeterRing')
   last = ''
 end
 
@@ -27,8 +29,8 @@ function Update()
   local c = heat(p)
   if c ~= last then
     last = c
-    SKIN:Bang('!SetVariable', 'Heat', c)
-    SKIN:Bang('!UpdateMeter', 'MeterRing')
+    SKIN:Bang('!SetVariable', var, c)
+    SKIN:Bang('!UpdateMeter', meter)
     SKIN:Bang('!Redraw')
   end
   return p

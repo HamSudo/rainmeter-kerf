@@ -1,7 +1,7 @@
 ; Per-module settings, written by Customize Kerf.
 ; Hover 0 none, 1 fade in, 2 fade out, 3 hide. Align 0 follow, 1 locked.
 ; SnapX 1 left, 2 centre, 3 right. SnapY 4 top, 5 bottom, 6 middle.
-; Fahr 1 = Fahrenheit.
+; Fahr 1 = Fahrenheit. GPUShow 0 auto, 1 integrated, 2 dedicated, 3 both (gauge).
 ; ClockLayout 0 classic, 1 vertical, 2 horizontal. CPU/GPULayout 0 horizontal, 1 vertical, 2 gauge.
 [Variables]
 ClockSize=100
@@ -37,3 +37,4 @@ CPUFahr=0
 GPULayout=0
 GPUFlip=0
 GPUFahr=0
+GPUShow=0

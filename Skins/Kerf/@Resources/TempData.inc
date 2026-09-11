@@ -20,6 +20,7 @@ RegValue=GPUKind
 Measure=Script
 ScriptFile=#@#Scripts\Temp.lua
 Kind=#Kind#
+Both=#Pair#
 
 [mTempText]
 Measure=Calc

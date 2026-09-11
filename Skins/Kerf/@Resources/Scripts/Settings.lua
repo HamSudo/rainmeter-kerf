@@ -291,6 +291,12 @@ function renderWeights(isClock)
   end
 end
 
+local function hasGpu(which)
+  local m = SKIN:GetMeasure(which == 'i' and 'mHasI' or 'mHasD')
+  local v = m and m:GetStringValue() or ''
+  return v ~= ''
+end
+
 function renderTemp(isClock, layout)
   local temp = not isClock
   for _, m in ipairs({ 'LblUnits', 'BtnU0', 'BtnU1' }) do SKIN:Bang(temp and '!ShowMeter' or '!HideMeter', m) end
@@ -298,10 +304,23 @@ function renderTemp(isClock, layout)
     button('BtnU0', getn(target .. 'Fahr') ~= 1)
     button('BtnU1', getn(target .. 'Fahr') == 1)
   end
+  local pick = target == 'GPU' and hasGpu('i') and hasGpu('d')
+  local show = getn('GPUShow')
+  if show == 3 and layout ~= 2 then show = 0 end
+  for i = 0, 3 do
+    local visible = pick and (i < 3 or layout == 2)
+    SKIN:Bang(visible and '!ShowMeter' or '!HideMeter', 'BtnG' .. i)
+    if visible then button('BtnG' .. i, show == i) end
+  end
+  SKIN:Bang(pick and '!ShowMeter' or '!HideMeter', 'LblGpu')
 end
 
 function Units(f)
   put(target .. 'Fahr', f, mods) refresh(target) Render()
+end
+
+function GpuShow(n)
+  put('GPUShow', n, mods) refresh('GPU') Render()
 end
 
 function Flip()

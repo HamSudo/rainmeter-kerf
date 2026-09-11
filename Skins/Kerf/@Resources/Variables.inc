@@ -90,3 +90,4 @@ Halo=0,0,0
 AccInk=242,184,75
 AF=0
 FadeK=1
+Pair=0
