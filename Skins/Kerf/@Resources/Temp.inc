@@ -36,13 +36,13 @@ Y=0
 [MeterValRef]
 Meter=String
 MeterStyle=sBase
-Text=88°C
+Text=[#Ref[#Fahr]][#Sym[#Fahr]]
 FontSize=(15*#Scale#)
 FontWeight=#TempWeight#
 FontColor=0,0,0,0
 InlineSetting=Shadow | 0 | 0 | 0 | 0,0,0,0
 InlineSetting2=Size | (8*#Scale#)
-InlinePattern2=°C
+InlinePattern2=°[CF]
 X=0
 Y=0
 
@@ -51,14 +51,14 @@ Meter=String
 MeterStyle=sBase
 MeasureName=mTempText
 InlineSetting4=CharacterSpacing | 0 | #TempTracking# | 0
-Text=%1°C
+Text=%1[#Sym[#Fahr]]
 FontSize=(15*#Scale#)
 FontWeight=#TempWeight#
 FontColor=#Ink#,(#A2#*#FadeK#)
 InlineSetting2=Size | (8*#Scale#)
-InlinePattern2=°C
+InlinePattern2=°[CF]
 InlineSetting3=Color | #Ink#,(130*#FadeK#)
-InlinePattern3=°C
+InlinePattern3=°[CF]
 X=((#AF# = 1) ? ([MeterValRef:W] - [MeterVal:W]) : (#RowW# - [MeterVal:W]))
 Y=(#Flip# * 8*#Scale#)
 

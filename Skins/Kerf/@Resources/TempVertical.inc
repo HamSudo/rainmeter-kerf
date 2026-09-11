@@ -37,7 +37,7 @@ H=([MeterUnit:Y] + [MeterUnit:H])
 [MeterValRef]
 Meter=String
 MeterStyle=sBase
-Text=88
+Text=[#Ref[#Fahr]]
 FontSize=(15*#Scale#)
 FontWeight=#TempWeight#
 FontColor=0,0,0,0
@@ -79,7 +79,7 @@ Y=(50*#Scale#)
 [MeterUnit]
 Meter=String
 MeterStyle=sBase | sMono
-Text=°C
+Text=[#Sym[#Fahr]]
 FontSize=(7.5*#Scale#)
 StringAlign=Center
 X=(#ColX# + [MeterValRef:W]/2)

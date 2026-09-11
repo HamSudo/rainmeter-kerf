@@ -23,7 +23,7 @@ Kind=#Kind#
 
 [mTempText]
 Measure=Calc
-Formula=Round(mTemp)
+Formula=((mTemp = 0) ? 0 : Round((#Fahr# = 1) ? (mTemp*1.8 + 32) : mTemp))
 RegExpSubstitute=1
 Substitute="^0$":"--"
 

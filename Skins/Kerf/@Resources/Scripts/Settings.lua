@@ -128,6 +128,7 @@ function Render()
   SKIN:Bang((isClock or flips) and '!ShowMeter' or '!HideMeter', 'LblShow')
   if flips then button('BtnSFlip', getn(target .. 'Flip') == 1) end
   renderWeights(isClock)
+  renderTemp(isClock, layout)
   local twelve = get('HourFormat') == '%I'
   for _, m in ipairs({ 'LblFormat', 'BtnFmt24', 'BtnFmt12' }) do SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', m) end
   button('BtnFmt24', not twelve)
@@ -288,6 +289,19 @@ function renderWeights(isClock)
       SKIN:Bang('!HideMeter', meter)
     end
   end
+end
+
+function renderTemp(isClock, layout)
+  local temp = not isClock
+  for _, m in ipairs({ 'LblUnits', 'BtnU0', 'BtnU1' }) do SKIN:Bang(temp and '!ShowMeter' or '!HideMeter', m) end
+  if temp then
+    button('BtnU0', getn(target .. 'Fahr') ~= 1)
+    button('BtnU1', getn(target .. 'Fahr') == 1)
+  end
+end
+
+function Units(f)
+  put(target .. 'Fahr', f, mods) refresh(target) Render()
 end
 
 function Flip()

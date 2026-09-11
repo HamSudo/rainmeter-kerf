@@ -77,6 +77,10 @@ A4=90
 ; Temperature range (C)
 TempMin=30
 TempMax=100
+Sym0=°C
+Sym1=°F
+Ref0=88
+Ref1=188
 
 
 ; Set automatically
