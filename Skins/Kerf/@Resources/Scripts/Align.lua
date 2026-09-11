@@ -1,7 +1,8 @@
 local function num(v) return tonumber(SKIN:ParseFormula(SKIN:ReplaceVariables('#' .. v .. '#'))) or 0 end
 
 function Snap(mode)
-  SKIN:Bang('!WriteKeyValue', 'Variables', 'AlignMode', mode)
+  local module = SKIN:GetVariable('CURRENTCONFIG'):match('([^\\]+)$')
+  SKIN:Bang('!WriteKeyValue', 'Variables', module .. 'Align', mode, SKIN:GetVariable('@') .. 'Modules.inc')
   SKIN:Bang('!SetVariable', 'AlignMode', mode)
   if mode > 0 then
     local m = num('EdgeMargin') * num('Scale')

@@ -12,6 +12,7 @@ local FONTS    = { 'Hanken Grotesk', 'JetBrains Mono' }
 local FONT_LABELS = {}
 
 local DISPLAYS = { 1.00, 1.33, 2.00 }
+local PARTS    = { 'Time', 'Seconds', 'Wave', 'Day', 'Date' }
 
 local ON_BG, ON_FG   = '232,236,240,255', '14,17,21,255'
 local OFF_BG, OFF_FG = '255,255,255,16', '214,220,226,235'
@@ -41,6 +42,16 @@ function Render()
   SKIN:Bang('!SetOption', 'ValSize', 'Text', getn(target .. 'Size') .. '%')
   SKIN:Bang('!SetOption', 'ValTrans', 'Text', getn(target .. 'Trans') .. '%')
   for i = 0, 3 do button('BtnH' .. i, getn(target .. 'Hover') == i) end
+
+  local isClock = target == 'Clock'
+
+  for i = 0, 3 do button('BtnA' .. i, getn(target .. 'Align') == i) end
+
+  for _, part in ipairs(PARTS) do
+    SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', 'BtnS' .. part)
+    if isClock then button('BtnS' .. part, getn('ClockShow' .. part) == 1) end
+  end
+  SKIN:Bang(isClock and '!HideMeter' or '!ShowMeter', 'NoteShow')
 
   local accent = get('Accent'):gsub('%s', '')
   for i, a in ipairs(ACCENTS) do
@@ -85,6 +96,17 @@ end
 
 function Hover(n)
   put(target .. 'Hover', n, mods) refresh(target) Render()
+end
+
+function Align(n)
+  SKIN:Bang('!SetVariable', target .. 'Align', n)
+  SKIN:Bang('!CommandMeasure', 'mAlignScript', 'Snap(' .. n .. ')', 'Kerf\\' .. target)
+  Render()
+end
+
+function Toggle(part)
+  local key = 'ClockShow' .. part
+  put(key, 1 - getn(key), mods) refresh('Clock') Render()
 end
 
 function Accent(i)
