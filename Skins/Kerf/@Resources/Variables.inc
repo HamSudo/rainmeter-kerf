@@ -21,6 +21,7 @@ EdgeMargin=48
 
 ; Clock
 TimeFormat=%H:%M
+HourFormat=%H
 TagFormat=24H
 
 ; Music line
