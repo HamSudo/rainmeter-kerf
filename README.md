@@ -5,7 +5,7 @@ temperatures read straight from Windows -- no HWiNFO, no extra software.
 
 ## Install
 
-Download `Kerf-0.2.0.rmskin` from the release and double-click it.
+Download `Kerf-0.3.0.rmskin` from the release and double-click it.
 
 ## Modules
 
@@ -13,12 +13,17 @@ Download `Kerf-0.2.0.rmskin` from the release and double-click it.
   the day and the date.
 - **CPU** and **GPU** -- temperature with a small scale underneath.
 
+## Layouts
+
+The clock comes in three layouts -- classic, vertical and horizontal -- and
+CPU and GPU in two, horizontal and vertical. Pick them in the panel.
+
 ## Customize Kerf
 
 Right-click any module and choose **Customize Kerf**. The panel sets, per
 module, its size, transparency, what happens on hover and how it aligns; and,
 for all modules at once, the accent colour, the font, the ink mode and the
-display scale. The clock's parts (time, seconds, wave, day, date) can be shown
+display scale, and the 12- or 24-hour clock. The clock's parts (time, seconds, wave, day, date) can be shown
 or hidden there too.
 
 Kerf replaces Rainmeter's own Transparency and On-hover settings. If you use
