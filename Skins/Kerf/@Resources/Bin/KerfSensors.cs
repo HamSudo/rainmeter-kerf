@@ -74,6 +74,86 @@ static class Kmt
 
 class Adapter { public uint Handle; public string Name; public bool Integrated; }
 
+static class Backdrop
+{
+    [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
+    [StructLayout(LayoutKind.Sequential)] struct POINT { public int X, Y; }
+    delegate bool EnumProc(IntPtr h, IntPtr l);
+    [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, System.Text.StringBuilder s, int n);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, System.Text.StringBuilder s, int n);
+    [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out RECT r);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+    [DllImport("user32.dll")] static extern IntPtr WindowFromPoint(POINT p);
+    [DllImport("user32.dll")] static extern IntPtr GetAncestor(IntPtr h, uint flags);
+    [DllImport("user32.dll")] static extern int GetSystemMetrics(int i);
+    [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+
+    public static Dictionary<string, RECT> Modules()
+    {
+        var d = new Dictionary<string, RECT>();
+        EnumWindows((h, l) =>
+        {
+            if (!IsWindowVisible(h)) return true;
+            var sb = new System.Text.StringBuilder(512); GetWindowText(h, sb, 512);
+            string t = sb.ToString();
+            int i = t.IndexOf(@"\Kerf\", StringComparison.OrdinalIgnoreCase);
+            if (i >= 0 && t.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
+            {
+                string rest = t.Substring(i + 6);
+                int j = rest.IndexOf('\\');
+                if (j > 0 && rest.Substring(0, j) != "Settings") { RECT r; GetWindowRect(h, out r); d[rest.Substring(0, j)] = r; }
+            }
+            return true;
+        }, IntPtr.Zero);
+        return d;
+    }
+
+    static bool Desktop(int x, int y)
+    {
+        IntPtr h = WindowFromPoint(new POINT { X = x, Y = y });
+        if (h == IntPtr.Zero) return false;
+        var sb = new System.Text.StringBuilder(256); GetClassName(GetAncestor(h, 2), sb, 256);
+        string c = sb.ToString();
+        return c == "Progman" || c == "WorkerW" || c == "RainmeterMeterWindow";
+    }
+
+    static double Lin(int v) { double c = v / 255.0; return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4); }
+
+    public static double? Luminance(RECT r)
+    {
+        int m = 12;
+        int vx = GetSystemMetrics(76), vy = GetSystemMetrics(77), vw = GetSystemMetrics(78), vh = GetSystemMetrics(79);
+        int x0 = Math.Max(vx, r.L - m), y0 = Math.Max(vy, r.T - m);
+        int x1 = Math.Min(vx + vw, r.R + m), y1 = Math.Min(vy + vh, r.B + m);
+        int w = x1 - x0, h = y1 - y0;
+        if (w < 4 || h < 4) return null;
+        try
+        {
+            using (var bmp = new System.Drawing.Bitmap(w, h))
+            using (var g = System.Drawing.Graphics.FromImage(bmp))
+            {
+                g.CopyFromScreen(x0, y0, 0, 0, new System.Drawing.Size(w, h));
+                var vals = new List<double>();
+                int total = 0, cols = 14, rows = 10;
+                for (int gy = 0; gy < rows; gy++)
+                    for (int gx = 0; gx < cols; gx++)
+                    {
+                        int px = (int)((gx + 0.5) * w / cols), py = (int)((gy + 0.5) * h / rows);
+                        total++;
+                        if (!Desktop(x0 + px, y0 + py)) continue;
+                        var c = bmp.GetPixel(px, py);
+                        vals.Add(0.2126 * Lin(c.R) + 0.7152 * Lin(c.G) + 0.0722 * Lin(c.B));
+                    }
+                if (vals.Count < total / 2) return null;
+                vals.Sort();
+                return vals[vals.Count / 2];
+            }
+        }
+        catch { return null; }
+    }
+}
+
 static class Program
 {
     static readonly Regex Discrete = new Regex(@"nvidia|geforce|rtx|gtx|quadro|radeon rx|radeon pro|\brx \d|arc a\d|arc b\d", RegexOptions.IgnoreCase);
@@ -137,14 +217,33 @@ static class Program
         {
             if (!owned && !once) return;
 
+            Backdrop.SetProcessDPIAware();
             var adapters = GetAdapters();
             DateTime refreshed = DateTime.UtcNow;
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Sensors");
+            RegistryKey ink = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Ink");
             double? lastCpu = null, lastGpu = null; string lastKind = "", lastName = "";
-            DateTime lastTemps = DateTime.MinValue;
+            DateTime lastSample = DateTime.MinValue, lastTemps = DateTime.MinValue;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
 
             while (true)
             {
+                string now = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                var mods = Backdrop.Modules();
+
+                ink.SetValue("Alive", now);
+
+                if (mods.Count > 0 && (DateTime.UtcNow - lastSample).TotalSeconds >= 5)
+                {
+                    foreach (var mod in mods)
+                    {
+                        double? lum = Backdrop.Luminance(mod.Value);
+                        if (lum.HasValue) ink.SetValue(mod.Key, lum.Value.ToString("0.000", inv));
+                    }
+                    ink.SetValue("Tick", now);
+                    lastSample = DateTime.UtcNow;
+                }
+
                 if ((DateTime.UtcNow - lastTemps).TotalSeconds >= 10)
                 {
                     lastTemps = DateTime.UtcNow;
@@ -191,6 +290,7 @@ static class Program
             }
             Kmt.Close(adapters.Select(a => a.Handle));
             key.Close();
+            ink.Close();
         }
     }
 }

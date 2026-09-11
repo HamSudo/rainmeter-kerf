@@ -54,6 +54,42 @@ Parent=mChameleon
 Color=Average
 UpdateDivider=#InkDivider#
 
+[mLaunch]
+Measure=Plugin
+Plugin=RunCommand
+Program="#@#Bin\KerfSensors.exe"
+State=Hide
+Timeout=-1
+
+[mBuild]
+Measure=Plugin
+Plugin=RunCommand
+Program="%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+Parameter=/nologo /target:winexe /optimize /r:System.Drawing.dll /out:"#@#Bin\KerfSensors.exe" "#@#Bin\KerfSensors.cs"
+State=Hide
+FinishAction=[!CommandMeasure mLaunch "Run"]
+
+[mScreenLum]
+Measure=Registry
+RegHKey=HKEY_CURRENT_USER
+RegKey=Software\Kerf\Ink
+RegValue=Clock
+UpdateDivider=#InkDivider#
+
+[mScreenTick]
+Measure=Registry
+RegHKey=HKEY_CURRENT_USER
+RegKey=Software\Kerf\Ink
+RegValue=Tick
+UpdateDivider=#InkDivider#
+
+[mScreenAlive]
+Measure=Registry
+RegHKey=HKEY_CURRENT_USER
+RegKey=Software\Kerf\Ink
+RegValue=Alive
+UpdateDivider=#InkDivider#
+
 [mInkScript]
 Measure=Script
 ScriptFile=#@#Scripts\Ink.lua

@@ -7,11 +7,19 @@ end
 
 local function m(name) return SKIN:GetMeasure(name) end
 
+local CONFIRM = 2
+local MARGIN = 0.03
+hist, lastTick, decided = {}, nil, nil
+
 function Initialize()
   avg, we64, we32 = m('mAvgColor'), m('mWE64'), m('mWE32')
   bgType, bgColor, winWall, steam = m('mBgType'), m('mBgColor'), m('mWinWall'), m('mSteamPath')
   every = tonumber(SELF:GetOption('CheckEvery', '20'))
   n, kind, source, weCfg = 0, nil, nil, nil
+
+  screenLum, screenTick, screenAlive = m('mScreenLum'), m('mScreenTick'), m('mScreenAlive')
+  local module = SKIN:GetVariable('CURRENTCONFIG'):match('([^\\]+)$')
+  SKIN:Bang('!SetOption', 'mScreenLum', 'RegValue', module)
 end
 
 local function findWEConfig()
@@ -96,6 +104,39 @@ local function luminance(r, g, b)
 end
 
 function Update()
+
+  local now = os.time()
+  local age = now - (tonumber(screenAlive and screenAlive:GetStringValue() or '') or 0)
+  if age > 20 and now - (lastLaunch or -1000) > 60 then
+    lastLaunch = now
+    SKIN:Bang('!CommandMeasure', exists(SKIN:GetVariable('@') .. 'Bin\\KerfSensors.exe') and 'mLaunch' or 'mBuild', 'Run')
+  end
+  local screen = tonumber(screenLum and screenLum:GetStringValue() or '')
+  if screen and age <= 20 then
+    local tick = screenTick:GetStringValue()
+    if tick ~= lastTick then
+      lastTick = tick
+      hist[#hist + 1] = screen
+      if #hist > CONFIRM then table.remove(hist, 1) end
+      local th = tonumber(SKIN:GetVariable('InkThreshold', '0.3')) or 0.3
+      if decided == nil then
+        decided = screen
+      elseif #hist >= CONFIRM then
+        local dark, light = true, true
+        for _, v in ipairs(hist) do
+          if v <= th + MARGIN then dark = false end
+          if v >= th - MARGIN then light = false end
+        end
+        if (dark and decided <= th) or (light and decided > th) then
+          local sorted = { table.unpack and table.unpack(hist) or unpack(hist) }
+          table.sort(sorted)
+          decided = sorted[math.ceil(#sorted / 2)]
+        end
+      end
+    end
+    if decided then return decided end
+  end
+
   if kind == nil or n >= every then n = 0 CheckSource() end
   n = n + 1
 
