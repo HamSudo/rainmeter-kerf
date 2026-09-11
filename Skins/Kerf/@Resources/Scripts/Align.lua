@@ -1,8 +1,14 @@
 local function num(v) return tonumber(SKIN:ParseFormula(SKIN:ReplaceVariables('#' .. v .. '#'))) or 0 end
 local function var(v) return tonumber(SKIN:ReplaceVariables('#' .. v .. '#')) end
 
+local function measure(name, fallback)
+  local m = SKIN:GetMeasure(name)
+  return m and m:GetValue() or fallback
+end
+
 local function ink()
-  return 0, 0, num('CURRENTCONFIGWIDTH'), num('CURRENTCONFIGHEIGHT')
+  local w, h = num('CURRENTCONFIGWIDTH'), num('CURRENTCONFIGHEIGHT')
+  return measure('mInkL', 0), measure('mInkT', 0), measure('mInkR', w), measure('mInkB', h)
 end
 
 local function save(key, value)

@@ -10,6 +10,24 @@ MaxSize=(7.5*#Scale#)
 LengthFormula=(46*#Scale#)
 TopFormula=(1*#Scale#)
 
+[mInkL]
+Measure=Calc
+Formula=0
+
+[mInkR]
+Measure=Calc
+Formula=([MeterValRef:W] + 10*#Scale#)
+DynamicVariables=1
+
+[mInkT]
+Measure=Calc
+Formula=0
+
+[mInkB]
+Measure=Calc
+Formula=#RH#
+DynamicVariables=1
+
 [MeterBox]
 Meter=Image
 MeterStyle=sHitBox

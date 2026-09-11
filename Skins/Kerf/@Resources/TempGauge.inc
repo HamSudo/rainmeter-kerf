@@ -2,6 +2,22 @@
 Measure=Script
 ScriptFile=#@#Scripts\Gauge.lua
 
+[mInkL]
+Measure=Calc
+Formula=(#GC# - #GR# - #GS#/2)
+
+[mInkT]
+Measure=Calc
+Formula=(#GC# - #GR# - #GS#/2)
+
+[mInkR]
+Measure=Calc
+Formula=(#GC# + #GR# + #GS#/2)
+
+[mInkB]
+Measure=Calc
+Formula=Max(#GC# + #GR#*0.7071 + #GS#/2, #GC# + #GR#*0.9 + 3*#Scale#)
+
 [MeterBox]
 Meter=Image
 MeterStyle=sHitBox

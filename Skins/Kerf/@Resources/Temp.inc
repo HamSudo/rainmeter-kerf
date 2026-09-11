@@ -1,3 +1,22 @@
+[mInkL]
+Measure=Calc
+Formula=0
+
+[mInkR]
+Measure=Calc
+Formula=#RowW#
+DynamicVariables=1
+
+[mInkT]
+Measure=Calc
+Formula=((#Flip# = 1) ? 0 : ([MeterVal:Y] + [MeterVal:H]*#VCapTop#))
+DynamicVariables=1
+
+[mInkB]
+Measure=Calc
+Formula=((#Flip# = 1) ? ([MeterVal:Y] + [MeterVal:H]*#VBase#) : ([MeterRuler:Y] + 5*#Scale#))
+DynamicVariables=1
+
 [MeterBox]
 Meter=Image
 MeterStyle=sHitBox
