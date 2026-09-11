@@ -5,7 +5,7 @@ temperatures read straight from Windows -- no HWiNFO, no extra software.
 
 ## Install
 
-Download `Kerf-0.3.0.rmskin` from the release and double-click it.
+Download `Kerf-0.4.0.rmskin` from the release and double-click it.
 
 ## Modules
 
@@ -31,12 +31,18 @@ them from Rainmeter's menu, Kerf adopts the values and resets them.
 
 ## Adaptive ink
 
-Kerf reads what is behind it -- Wallpaper Engine, a solid colour or a Windows
-wallpaper -- and switches between light and dark ink.
+Kerf reads what is behind each module -- Wallpaper Engine, a solid colour or a
+Windows wallpaper -- and switches between light and dark ink. It samples only
+when the wallpaper changes, and stops entirely while the desktop is hidden.
+
+## Music line
+
+The line follows the music: its height tracks the loudness and the Windows
+volume, and it glows in the accent colour on the beat.
 
 ## Fonts
 
-The fonts Kerf uses are bundled in `Skins\Kerf\@Resources\Fonts` and are
+Kerf ships with a collection of display and mono fonts, bundled in `Skins\Kerf\@Resources\Fonts` and are
 loaded by Rainmeter itself, so nothing has to be installed.
 
 To use a font of your own, drop its `.ttf` or `.otf` files into that folder

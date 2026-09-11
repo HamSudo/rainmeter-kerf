@@ -77,7 +77,7 @@ end
 
 function Enter()
   if mode == 1 then fadeTo(1)
-  elseif mode == 2 then fadeTo(opacity(math.min(trans * 3, 100)))
+  elseif mode == 2 then fadeTo(opacity(math.max(30, math.min(trans * 3, 100))))
   elseif mode == 3 then set(0, true) end
 end
 
