@@ -44,7 +44,7 @@ AccentOnLight=150,114,46
 
 ; Ink: 0 auto, 1 light, 2 dark
 InkMode=0
-InkThreshold=0.30
+InkThreshold=0.18
 InkDivider=1
 WEConfig=
 InkLight=244,246,248
