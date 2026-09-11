@@ -23,8 +23,26 @@ local FONTS    = {
 local FONT_LABELS = {}
 
 local FONT_PROFILES = {}
-local DEFAULT_PROFILE = { TimeTracking = -2, VLineStep = 0.63, VDigitGap = 0, TempTracking = 0 }
+local DEFAULT_PROFILE = { TimeTracking = -2, VDigitGap = 0, TempTracking = 0 }
 
+local FONT_METRICS = {
+  ['Hanken Grotesk']  = { VCapTop = 0.226, VBase = 0.767, VDotW = 0.058, VDotH = 0.083, VDotGap = 0.196, VDotR = 0.00 },
+  ['JetBrains Mono']  = { VCapTop = 0.212, VBase = 0.773, VDotW = 0.121, VDotH = 0.111, VDotGap = 0.209, VDotR = 0.42 },
+  ['Rajdhani']        = { VCapTop = 0.225, VBase = 0.729, VDotW = 0.029, VDotH = 0.107, VDotGap = 0.185, VDotR = 0.02 },
+  ['Orbitron']        = { VCapTop = 0.231, VBase = 0.806, VDotW = 0.065, VDotH = 0.065, VDotGap = 0.338, VDotR = 0.00 },
+  ['Teko']            = { VCapTop = 0.234, VBase = 0.669, VDotW = 0.057, VDotH = 0.078, VDotGap = 0.182, VDotR = 0.00 },
+  ['Audiowide']       = { VCapTop = 0.227, VBase = 0.776, VDotW = 0.099, VDotH = 0.099, VDotGap = 0.215, VDotR = 0.50 },
+  ['Russo One']       = { VCapTop = 0.179, VBase = 0.768, VDotW = 0.149, VDotH = 0.124, VDotGap = 0.191, VDotR = 0.00 },
+  ['Chakra Petch']    = { VCapTop = 0.225, VBase = 0.763, VDotW = 0.066, VDotH = 0.066, VDotGap = 0.216, VDotR = 0.37 },
+  ['Bebas Neue']      = { VCapTop = 0.185, VBase = 0.731, VDotW = 0.082, VDotH = 0.082, VDotGap = 0.212, VDotR = 0.00 },
+  ['Share Tech Mono'] = { VCapTop = 0.164, VBase = 0.785, VDotW = 0.089, VDotH = 0.089, VDotGap = 0.266, VDotR = 0.00 },
+  ['Doto']            = { VCapTop = 0.232, VBase = 0.792, VDotW = 0.070, VDotH = 0.070, VDotGap = 0.200, VDotR = 0.50 },
+  ['Space Mono']      = { VCapTop = 0.274, VBase = 0.756, VDotW = 0.095, VDotH = 0.095, VDotGap = 0.165, VDotR = 0.50 },
+  ['Tilt Neon']       = { VCapTop = 0.238, VBase = 0.784, VDotW = 0.071, VDotH = 0.123, VDotGap = 0.162, VDotR = 0.29 },
+  ['VT323']           = { VCapTop = 0.240, VBase = 0.800, VDotW = 0.108, VDotH = 0.160, VDotGap = 0.160, VDotR = 0.05 },
+  ['Tektur']          = { VCapTop = 0.231, VBase = 0.769, VDotW = 0.069, VDotH = 0.077, VDotGap = 0.200, VDotR = 0.00 },
+}
+local DEFAULT_METRICS = { VCapTop = 0.22, VBase = 0.77, VDotW = 0.08, VDotH = 0.08, VDotGap = 0.2, VDotR = 0.3 }
 local DISPLAYS = { 1.00, 1.33, 2.00 }
 local PARTS    = { 'Time', 'Seconds', 'Wave', 'Day', 'Date' }
 local LAYOUT_NAMES = {
@@ -214,8 +232,9 @@ end
 function Font(delta)
   local i = (fontIndex() - 1 + delta) % #FONTS + 1
   put('FontFace', FONTS[i], vars)
-  local prof = FONT_PROFILES[FONTS[i]] or {}
+  local prof, met = FONT_PROFILES[FONTS[i]] or {}, FONT_METRICS[FONTS[i]] or {}
   for k, val in pairs(DEFAULT_PROFILE) do put(k, prof[k] or val, vars) end
+  for k, val in pairs(DEFAULT_METRICS) do put(k, met[k] or val, vars) end
   refresh() Render()
 end
 

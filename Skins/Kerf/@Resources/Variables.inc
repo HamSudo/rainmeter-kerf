@@ -14,9 +14,14 @@ TimeTracking=-2
 MicroTracking=2
 
 ; Set by the font picker
-VLineStep=0.63
 VDigitGap=0
 TempTracking=0
+VCapTop=0.226
+VBase=0.767
+VDotW=0.058
+VDotH=0.083
+VDotGap=0.196
+VDotR=0
 
 ; Display scale: 1.00 at 1080p, 1.33 at 1440p, 2.00 at 4K
 BaseScale=1.00
