@@ -33,6 +33,11 @@ Measure=Time
 Format=%d / %m / %Y
 UpdateDivider=30
 
+[mDMYShort]
+Measure=Time
+Format=%d/%m/%y
+UpdateDivider=30
+
 [mDayStyle]
 Measure=String
 String=#DayItalic#
