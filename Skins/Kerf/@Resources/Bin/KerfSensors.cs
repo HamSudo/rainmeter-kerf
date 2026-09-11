@@ -247,7 +247,7 @@ static class Program
             DateTime refreshed = DateTime.UtcNow;
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Sensors");
             RegistryKey ink = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Ink");
-            double? lastCpu = null, lastGpu = null; string lastKind = "", lastName = "";
+            double? lastCpu = null, lastGpu = null, lastIgpu = null, lastDgpu = null; string lastKind = "", lastName = "";
             string lastLayout = null, lastWall = null;
             DateTime lastSample = DateTime.MinValue, lastTemps = DateTime.MinValue;
             bool wasVisible = false;
@@ -306,24 +306,29 @@ static class Program
                         }
 
                         double? cpu = ReadCpu();
-                        double? gpu = null; string kind = "", name = "";
-                        foreach (var a in adapters.OrderBy(a => a.Integrated))
+                        double? igpu = null, dgpu = null;
+                        foreach (var a in adapters)
                         {
                             int t = Kmt.TempDeci(a.Handle);
-                            if (t > 0 && t < 1500) { gpu = t / 10.0; kind = a.Integrated ? "iGPU" : "dGPU"; name = a.Name; break; }
+                            if (t <= 0 || t >= 1500) continue;
+                            if (a.Integrated) { if (igpu == null) igpu = t / 10.0; }
+                            else if (dgpu == null) { dgpu = t / 10.0; lastName = a.Name; }
                         }
-                        if (gpu == null && cpu != null)
-                        {
-                            var ig = adapters.FirstOrDefault(a => a.Integrated);
-                            if (ig != null) { gpu = cpu; kind = "iGPU"; name = ig.Name + " (shares CPU die)"; }
-                        }
+                        if (igpu == null && cpu != null && adapters.Any(a => a.Integrated)) igpu = cpu;
+
+                        double? gpu = dgpu ?? igpu;
+                        string kind = dgpu != null ? "dGPU" : igpu != null ? "iGPU" : "";
 
                         if (cpu.HasValue) lastCpu = cpu;
-                        if (gpu.HasValue) { lastGpu = gpu; lastKind = kind; lastName = name; }
+                        if (gpu.HasValue) { lastGpu = gpu; lastKind = kind; }
+                        if (igpu.HasValue) lastIgpu = igpu;
+                        if (dgpu.HasValue) lastDgpu = dgpu;
                         key.SetValue("CPU", F(lastCpu));
                         key.SetValue("GPU", F(lastGpu));
                         key.SetValue("GPUKind", lastKind);
                         key.SetValue("GPUName", lastName);
+                        key.SetValue("iGPU", F(lastIgpu));
+                        key.SetValue("dGPU", F(lastDgpu));
                         key.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
                     }
                 }
