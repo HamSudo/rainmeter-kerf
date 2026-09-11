@@ -158,9 +158,15 @@ function Initialize()
   ON_BG, ON_FG = themed('POnBg', '232,236,240,255'), themed('POnFg', '14,17,21,255')
   OFF_BG, OFF_FG = themed('PBtnBg', '255,255,255,16'), themed('PBtnFg', '214,220,226,235')
   RING = themed('PRing', '255,255,255')
-  local wx, wy = getn('WORKAREAX'), getn('WORKAREAY')
-  local ww, wh = getn('WORKAREAWIDTH'), getn('WORKAREAHEIGHT')
-  SKIN:Bang('!Move', math.floor(wx + (ww - getn('W')) / 2), math.floor(wy + (wh - getn('H')) / 2))
+  local panel = get('CURRENTPATH') .. get('CURRENTFILE')
+  if get('PanelKeep') == '1' then
+    target = get('PanelTab') ~= '' and get('PanelTab') or 'Clock'
+    SKIN:Bang('!WriteKeyValue', 'Variables', 'PanelKeep', '0', panel)
+  else
+    local wx, wy = getn('WORKAREAX'), getn('WORKAREAY')
+    local ww, wh = getn('WORKAREAWIDTH'), getn('WORKAREAHEIGHT')
+    SKIN:Bang('!Move', math.floor(wx + (ww - getn('W')) / 2), math.floor(wy + (wh - getn('H')) / 2))
+  end
   Render()
 end
 
@@ -317,6 +323,9 @@ end
 
 function Theme(n)
   put('PanelTheme', n, vars)
+  local panel = get('CURRENTPATH') .. get('CURRENTFILE')
+  SKIN:Bang('!WriteKeyValue', 'Variables', 'PanelTab', target, panel)
+  SKIN:Bang('!WriteKeyValue', 'Variables', 'PanelKeep', '1', panel)
   SKIN:Bang('!Refresh')
 end
 
