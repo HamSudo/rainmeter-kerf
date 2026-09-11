@@ -242,13 +242,7 @@ end
 local function has(list, w) for _, v in ipairs(list) do if v == w then return true end end return false end
 
 local function weightsOf(part)
-  local clock = FONT_WEIGHTS[get('FontFace')] or { 400 }
-  local mono = FONT_WEIGHTS[get('MonoFace')] or { 400 }
-  if part == 'Date' then return mono end
-  if part ~= 'All' then return clock end
-  local both = {}
-  for _, w in ipairs(clock) do if has(mono, w) then both[#both + 1] = w end end
-  return both
+  return FONT_WEIGHTS[get('FontFace')] or { 400 }
 end
 
 function WeightPart(p) weightPart = p Render() end

@@ -5,7 +5,7 @@ temperatures read straight from Windows -- no HWiNFO, no extra software.
 
 ## Install
 
-Download `Kerf-0.4.0.rmskin` from the release and double-click it.
+Download `Kerf-0.5.0.rmskin` from the release and double-click it.
 
 ## Modules
 
@@ -16,7 +16,9 @@ Download `Kerf-0.4.0.rmskin` from the release and double-click it.
 ## Layouts
 
 The clock comes in three layouts -- classic, vertical and horizontal -- and
-CPU and GPU in two, horizontal and vertical. Pick them in the panel.
+CPU and GPU in three: horizontal, vertical and a circular gauge. Pick them
+in the panel, where you can also flip the horizontal and vertical meters and
+set the weight of the time, day and date.
 
 ## Customize Kerf
 
