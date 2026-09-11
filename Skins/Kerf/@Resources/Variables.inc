@@ -31,6 +31,7 @@ WaveFrequency=12
 WaveSpeed=0.05
 WaveSpread=1.2
 WaveGain=2
+WaveFollowVolume=1
 WaveEcho1=90
 WaveEcho2=40
 

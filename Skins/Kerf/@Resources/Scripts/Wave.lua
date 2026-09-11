@@ -7,6 +7,7 @@ local CURVES = {
 
 function Initialize()
   level = SKIN:GetMeasure('mLevel')
+  volume = SKIN:GetMeasure('mVolume')
   timeMeter = SKIN:GetMeter('MeterTime')
   amp, last, flat = 0, os.clock(), false
   phase = { 0, 2.1, 4.2 }
@@ -23,7 +24,12 @@ function Update()
   last = now
 
   local loud = math.min(1, math.max(0, level and level:GetValue() or 0))
-  local target = loud
+  local vol = 1
+  if num('#WaveFollowVolume#') > 0 and volume then
+    vol = math.max(0, volume:GetValue()) / 100
+    vol = vol ^ 0.7
+  end
+  local target = loud * vol
   amp = amp + (target - amp) * (1 - 0.92 ^ frames)
 
   local speed = num('#WaveSpeed#') * (0.5 + 0.9 * amp)
