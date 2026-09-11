@@ -293,8 +293,8 @@ end
 
 local function hasGpu(which)
   local m = SKIN:GetMeasure(which == 'i' and 'mHasI' or 'mHasD')
-  local v = m and m:GetStringValue() or ''
-  return v ~= ''
+  local v = tonumber(m and m:GetStringValue() or '')
+  return v ~= nil and v > 5
 end
 
 function renderTemp(isClock, layout)
@@ -306,6 +306,16 @@ function renderTemp(isClock, layout)
   end
   local pick = target == 'GPU' and hasGpu('i') and hasGpu('d')
   local show = getn('GPUShow')
+  local rows = 3
+  if temp then
+    local y = layout ~= 2 and 408 or 352
+    SKIN:Bang('!SetOption', 'LblUnits', 'Y', y)
+    SKIN:Bang('!SetOption', 'BtnU0', 'Y', y + 16)
+    SKIN:Bang('!SetOption', 'LblGpu', 'Y', y + 56)
+    SKIN:Bang('!SetOption', 'BtnG0', 'Y', y + 72)
+    rows = (layout ~= 2 and 1 or 0) + 1 + (pick and 1 or 0)
+  end
+  SKIN:Bang('!SetVariable', 'Shift', (rows - 3) * 56)
   for i = 0, 3 do
     local visible = pick
     SKIN:Bang(visible and '!ShowMeter' or '!HideMeter', 'BtnG' .. i)
