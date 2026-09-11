@@ -45,7 +45,11 @@ function Render()
 
   local isClock = target == 'Clock'
 
-  for i = 0, 3 do button('BtnA' .. i, getn(target .. 'Align') == i) end
+  local edges = false
+  for i = 0, 5 do
+    if i >= 4 then SKIN:Bang(edges and '!ShowMeter' or '!HideMeter', 'BtnA' .. i) end
+    button('BtnA' .. i, getn(target .. 'Align') == i)
+  end
 
   for _, part in ipairs(PARTS) do
     SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', 'BtnS' .. part)

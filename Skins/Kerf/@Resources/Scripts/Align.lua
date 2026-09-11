@@ -12,7 +12,9 @@ function Snap(mode)
     local x, y = cx, cy
     if mode == 1 then x = wx + m
     elseif mode == 2 then x = wx + (ww - cw) / 2
-    elseif mode == 3 then x = wx + ww - cw - m end
+    elseif mode == 3 then x = wx + ww - cw - m
+    elseif mode == 4 then y = wy + m
+    elseif mode == 5 then y = wy + wh - ch - m end
     SKIN:Bang('!Move', math.floor(x + 0.5), math.floor(y + 0.5))
   end
   SKIN:Bang('!UpdateMeasure', 'mAlign')

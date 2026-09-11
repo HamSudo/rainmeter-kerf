@@ -12,3 +12,5 @@ IfCondition2=mAlign = 2
 IfTrueAction2=[!SetVariable AF 0.5][!UpdateMeter *][!Redraw]
 IfCondition3=mAlign = 3
 IfTrueAction3=[!SetVariable AF 1][!UpdateMeter *][!Redraw]
+IfCondition4=mAlign >= 4
+IfTrueAction4=[!SetVariable AF 0.5][!UpdateMeter *][!Redraw]
