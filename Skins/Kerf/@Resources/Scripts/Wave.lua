@@ -98,8 +98,8 @@ function Update()
     local bass = ((b0 and b0:GetValue() or 0) + (b1 and b1:GetValue() or 0)) / 2
     bassAvg = (bassAvg or bass) + (bass - (bassAvg or bass)) * (1 - 0.985 ^ frames)
     local punch = math.min(1, math.max(0, (bass - bassAvg * 0.9) / math.max(0.06, bassAvg * 0.7)))
-    local base = math.min(0.3, amp * 1.5)
-    local target = math.max(base, punch) * (amp > 0.01 and 1 or 0)
+    local base = math.min(0.32, 0.12 + amp * 1.5)
+    local target = math.max(base, punch) * (amp > 0.005 and 1 or 0)
     glowLv = glowLv or 0
     glowLv = glowLv + (target - glowLv) * (1 - (target > glowLv and 0.25 or 0.85) ^ frames)
     if glowLv < 0.004 then
