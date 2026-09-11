@@ -10,6 +10,7 @@ local ACCENTS  = {
 local FONTS    = {
   'Hanken Grotesk', 'JetBrains Mono', 'Rajdhani', 'Orbitron', 'Teko',
   'Audiowide', 'Russo One', 'Chakra Petch', 'Bebas Neue', 'Share Tech Mono',
+  'Doto', 'Space Mono', 'Tilt Neon', 'VT323', 'Tektur',
 }
 
 local FONT_LABELS = {}
