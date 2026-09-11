@@ -13,6 +13,12 @@ local FONT_LABELS = {}
 
 local DISPLAYS = { 1.00, 1.33, 2.00 }
 local PARTS    = { 'Time', 'Seconds', 'Wave', 'Day', 'Date' }
+local LAYOUT_NAMES = {
+  Clock = { [0] = 'Classic', 'Vertical', 'Horizontal' },
+}
+local LAYOUT_FILES = {
+  Clock = { [0] = 'Clock.ini', 'Vertical.ini', 'Horizontal.ini' },
+}
 
 local ON_BG, ON_FG   = '232,236,240,255', '14,17,21,255'
 local OFF_BG, OFF_FG = '255,255,255,16', '214,220,226,235'
@@ -44,8 +50,21 @@ function Render()
   for i = 0, 3 do button('BtnH' .. i, getn(target .. 'Hover') == i) end
 
   local isClock = target == 'Clock'
+  local layout = getn(target .. 'Layout')
+  local names = LAYOUT_NAMES[target] or {}
+  for i = 0, 2 do
+    local meter = 'BtnL' .. i
+    if names[i] then
+      SKIN:Bang('!SetOption', meter, 'Text', names[i])
+      SKIN:Bang('!ShowMeter', meter)
+      button(meter, layout == i)
+    else
+      SKIN:Bang('!HideMeter', meter)
+    end
+  end
+  SKIN:Bang(names[0] and '!HideMeter' or '!ShowMeter', 'NoteLayout')
 
-  local edges = false
+  local edges = isClock and layout == 2
   for i = 0, 5 do
     if i >= 4 then SKIN:Bang(edges and '!ShowMeter' or '!HideMeter', 'BtnA' .. i) end
     button('BtnA' .. i, getn(target .. 'Align') == i)
@@ -105,6 +124,17 @@ end
 function Align(n)
   SKIN:Bang('!SetVariable', target .. 'Align', n)
   SKIN:Bang('!CommandMeasure', 'mAlignScript', 'Snap(' .. n .. ')', 'Kerf\\' .. target)
+  Render()
+end
+
+function Layout(n)
+  local file = (LAYOUT_FILES[target] or {})[n]
+  if not file then return end
+  put(target .. 'Layout', n, mods)
+  if not (target == 'Clock' and n == 2) and getn(target .. 'Align') >= 4 then
+    put(target .. 'Align', 0, mods)
+  end
+  SKIN:Bang('!ActivateConfig', 'Kerf\\' .. target, file)
   Render()
 end
 

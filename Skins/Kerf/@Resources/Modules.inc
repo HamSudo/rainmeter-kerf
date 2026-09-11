@@ -1,5 +1,6 @@
 ; Per-module settings, written by Customize Kerf.
 ; Hover 0 none, 1 fade in, 2 fade out, 3 hide. Align 0 follow position, 1 left, 2 centre, 3 right, 4 top, 5 bottom.
+; ClockLayout 0 classic, 1 vertical, 2 horizontal.
 [Variables]
 ClockSize=100
 ClockTrans=0
@@ -18,3 +19,4 @@ ClockShowSeconds=1
 ClockShowWave=1
 ClockShowDay=1
 ClockShowDate=1
+ClockLayout=0
