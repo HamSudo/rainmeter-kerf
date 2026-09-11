@@ -76,6 +76,13 @@ RegKey=Software\Kerf\Ink
 RegValue=Clock
 UpdateDivider=#InkDivider#
 
+[mScreenCon]
+Measure=Registry
+RegHKey=HKEY_CURRENT_USER
+RegKey=Software\Kerf\Ink
+RegValue=Clock
+UpdateDivider=#InkDivider#
+
 [mScreenTick]
 Measure=Registry
 RegHKey=HKEY_CURRENT_USER

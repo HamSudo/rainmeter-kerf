@@ -172,7 +172,9 @@ static class Backdrop
         };
     }
 
-    public static double? Luminance(RECT r, int m)
+    const double InkLight = 0.92, InkDark = 0.0077;
+
+    public static double[] Reading(RECT r, int m)
     {
         int vx = GetSystemMetrics(76), vy = GetSystemMetrics(77), vw = GetSystemMetrics(78), vh = GetSystemMetrics(79);
         int x0 = Math.Max(vx, r.L - m), y0 = Math.Max(vy, r.T - m);
@@ -186,7 +188,7 @@ static class Backdrop
             {
                 g.CopyFromScreen(x0, y0, 0, 0, new System.Drawing.Size(w, h));
                 var vals = new List<double>();
-                int total = 0, cols = 14, rows = 10;
+                int total = 0, cols = 20, rows = 12;
                 for (int gy = 0; gy < rows; gy++)
                     for (int gx = 0; gx < cols; gx++)
                     {
@@ -198,7 +200,10 @@ static class Backdrop
                     }
                 if (vals.Count < total / 2) return null;
                 vals.Sort();
-                return vals[vals.Count / 2];
+                double lo = vals[(int)(0.15 * (vals.Count - 1))], hi = vals[(int)(0.85 * (vals.Count - 1))];
+                double eff = Math.Sqrt((lo + 0.05) * (hi + 0.05)) - 0.05;
+                double light = (InkLight + 0.05) / (hi + 0.05), dark = (lo + 0.05) / (InkDark + 0.05);
+                return new[] { eff, Math.Max(light, dark) };
             }
         }
         catch { return null; }
@@ -300,7 +305,7 @@ static class Program
                     bool due = recheck > 0 && (DateTime.UtcNow - lastSample).TotalMinutes >= recheck;
                     if (mods.Count > 0 && (shown || layout != lastLayout || wall != lastWall || due))
                     {
-                        var readings = new Dictionary<string, List<double>>();
+                        var readings = new Dictionary<string, List<double[]>>();
                         for (int r = 0; r < 3; r++)
                         {
                             if (r > 0) Thread.Sleep(1500);
@@ -308,16 +313,17 @@ static class Program
                             {
                                 bool exact;
                                 var area = Backdrop.Area(mod.Value, areas[mod.Key], out exact);
-                                double? lum = Backdrop.Luminance(area, exact ? 0 : 12);
-                                if (!lum.HasValue) continue;
-                                if (!readings.ContainsKey(mod.Key)) readings[mod.Key] = new List<double>();
-                                readings[mod.Key].Add(lum.Value);
+                                var rd = Backdrop.Reading(area, exact ? 0 : 12);
+                                if (rd == null) continue;
+                                if (!readings.ContainsKey(mod.Key)) readings[mod.Key] = new List<double[]>();
+                                readings[mod.Key].Add(rd);
                             }
                         }
                         foreach (var rd in readings)
                         {
-                            rd.Value.Sort();
-                            ink.SetValue(rd.Key, rd.Value[rd.Value.Count / 2].ToString("0.000", inv));
+                            var mid = rd.Value.OrderBy(v => v[0]).ElementAt(rd.Value.Count / 2);
+                            ink.SetValue(rd.Key, mid[0].ToString("0.000", inv));
+                            ink.SetValue(rd.Key + "C", mid[1].ToString("0.00", inv));
                         }
                         if (readings.Count > 0) ink.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
                         lastLayout = layout; lastWall = wall; lastSample = DateTime.UtcNow;

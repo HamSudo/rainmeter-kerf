@@ -17,9 +17,20 @@ function Initialize()
   every = tonumber(SELF:GetOption('CheckEvery', '20'))
   n, kind, source, weCfg = 0, nil, nil, nil
 
-  screenLum, screenTick, screenAlive = m('mScreenLum'), m('mScreenTick'), m('mScreenAlive')
+  screenLum, screenTick, screenAlive, screenCon = m('mScreenLum'), m('mScreenTick'), m('mScreenAlive'), m('mScreenCon')
   local module = SKIN:GetVariable('CURRENTCONFIG'):match('([^\\]+)$')
   SKIN:Bang('!SetOption', 'mScreenLum', 'RegValue', module)
+  SKIN:Bang('!SetOption', 'mScreenCon', 'RegValue', module .. 'C')
+  haloK = 1
+end
+
+local function setHalo(k)
+  k = math.floor(k * 10 + 0.5) / 10
+  if k == haloK then return end
+  haloK = k
+  SKIN:Bang('!SetVariable', 'HaloK', string.format('%.1f', k))
+  SKIN:Bang('!UpdateMeter', '*')
+  SKIN:Bang('!Redraw')
 end
 
 local function findWEConfig()
@@ -133,8 +144,11 @@ function Update()
         end
       end
     end
+    local con = tonumber(screenCon and screenCon:GetStringValue() or '')
+    setHalo(con and con > 0 and math.max(1, math.min(2.5, 4.5 / con)) or 1)
     if decided then return decided end
   end
+  setHalo(1)
 
   if kind == nil or n >= every then n = 0 CheckSource() end
   n = n + 1
