@@ -1,15 +1,17 @@
 ; Kerf settings. Most are set from Customize Kerf; refresh Kerf after editing.
 [Variables]
 
-; Fonts
+; Fonts; weights 300 / 400 / 700
 FontFace=Hanken Grotesk
 MonoFace=JetBrains Mono
 TimeSize=100
-TimeWeight=300
+TimeWeight=400
 DayFace=#FontFace#
 DayItalic=0
 DayScale=0.19
 DayWeight=400
+DateWeight=400
+TempWeight=400
 TimeTracking=-2
 MicroTracking=2
 

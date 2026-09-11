@@ -56,6 +56,20 @@ local LAYOUT_FILES = {
   GPU   = { [0] = 'GPU.ini', 'Vertical.ini', 'Gauge.ini' },
 }
 
+local WEIGHTS = { 300, 400, 700 }
+local FONT_WEIGHTS = {
+  ['Hanken Grotesk'] = { 300, 400, 700 }, ['JetBrains Mono'] = { 300, 400, 700 },
+  ['Rajdhani'] = { 300, 400, 700 },       ['Orbitron'] = { 400, 700 },
+  ['Teko'] = { 300, 400, 700 },           ['Audiowide'] = { 400 },
+  ['Russo One'] = { 400 },                ['Chakra Petch'] = { 300, 400, 700 },
+  ['Bebas Neue'] = { 400 },               ['Share Tech Mono'] = { 400 },
+  ['Doto'] = { 300, 400, 700 },           ['Space Mono'] = { 400, 700 },
+  ['Tilt Neon'] = { 400 },                ['VT323'] = { 400 },
+  ['Tektur'] = { 400, 700 },
+}
+local WEIGHT_PARTS = { 'All', 'Time', 'Day', 'Date' }
+local weightPart = 'All'
+
 local vars, mods, target
 
 local function get(name) return SKIN:GetVariable(name) or '' end
@@ -113,6 +127,7 @@ function Render()
   SKIN:Bang(flips and '!ShowMeter' or '!HideMeter', 'BtnSFlip')
   SKIN:Bang((isClock or flips) and '!ShowMeter' or '!HideMeter', 'LblShow')
   if flips then button('BtnSFlip', getn(target .. 'Flip') == 1) end
+  renderWeights(isClock)
   local twelve = get('HourFormat') == '%I'
   for _, m in ipairs({ 'LblFormat', 'BtnFmt24', 'BtnFmt12' }) do SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', m) end
   button('BtnFmt24', not twelve)
@@ -224,6 +239,60 @@ function Toggle(part)
   put(key, 1 - getn(key), mods) refresh('Clock') Render()
 end
 
+local function has(list, w) for _, v in ipairs(list) do if v == w then return true end end return false end
+
+local function weightsOf(part)
+  local clock = FONT_WEIGHTS[get('FontFace')] or { 400 }
+  local mono = FONT_WEIGHTS[get('MonoFace')] or { 400 }
+  if part == 'Date' then return mono end
+  if part ~= 'All' then return clock end
+  local both = {}
+  for _, w in ipairs(clock) do if has(mono, w) then both[#both + 1] = w end end
+  return both
+end
+
+function WeightPart(p) weightPart = p Render() end
+
+function Weight(w)
+  if not has(weightsOf(weightPart), w) then return end
+  local parts = weightPart == 'All' and { 'Time', 'Day', 'Date' } or { weightPart }
+  for _, p in ipairs(parts) do put(p .. 'Weight', w, vars) end
+  refresh('Clock') Render()
+end
+
+local function fitWeights()
+  for _, p in ipairs({ 'Time', 'Day', 'Date' }) do
+    if not has(weightsOf(p), getn(p .. 'Weight')) then put(p .. 'Weight', 400, vars) end
+  end
+end
+
+function renderWeights(isClock)
+  for _, p in ipairs(WEIGHT_PARTS) do
+    SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', 'BtnWP' .. p)
+    button('BtnWP' .. p, p == weightPart)
+  end
+  SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', 'LblWeight')
+  local avail = weightsOf(weightPart)
+  local prev = 'BtnWPDate'
+  for _, w in ipairs(WEIGHTS) do
+    local meter = 'BtnW' .. w
+    if isClock and has(avail, w) then
+      SKIN:Bang('!SetOption', meter, 'X', '([' .. prev .. ':X] + [' .. prev .. ':W] + ' .. (prev == 'BtnWPDate' and 16 or 4) .. ')')
+      SKIN:Bang('!ShowMeter', meter)
+      local on
+      if weightPart == 'All' then
+        on = getn('TimeWeight') == w and getn('DayWeight') == w and getn('DateWeight') == w
+      else
+        on = getn(weightPart .. 'Weight') == w
+      end
+      button(meter, on)
+      prev = meter
+    else
+      SKIN:Bang('!HideMeter', meter)
+    end
+  end
+end
+
 function Flip()
   local key = target .. 'Flip'
   put(key, 1 - getn(key), mods) refresh(target) Render()
@@ -247,6 +316,7 @@ function Font(delta)
   local prof, met = FONT_PROFILES[FONTS[i]] or {}, FONT_METRICS[FONTS[i]] or {}
   for k, val in pairs(DEFAULT_PROFILE) do put(k, prof[k] or val, vars) end
   for k, val in pairs(DEFAULT_METRICS) do put(k, met[k] or val, vars) end
+  fitWeights()
   refresh() Render()
 end
 
