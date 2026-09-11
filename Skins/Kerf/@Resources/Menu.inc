@@ -2,6 +2,8 @@
 Group=Kerf
 AccurateText=1
 OnRefreshAction=[!ZPos -2]
+MouseOverAction=[!CommandMeasure mHover "Enter()"]
+MouseLeaveAction=[!CommandMeasure mHover "Leave()"]
 ContextTitle=Align: follow position (auto)
 ContextAction=[!CommandMeasure mAlignScript "Snap(0)"]
 ContextTitle2=Align: left edge
