@@ -31,6 +31,7 @@ Y=0
 Meter=String
 MeterStyle=sBase
 MeasureName=mTempText
+InlineSetting4=CharacterSpacing | 0 | #TempTracking# | 0
 Text=%1°C
 FontSize=(15*#Scale#)
 FontWeight=#DayWeight#

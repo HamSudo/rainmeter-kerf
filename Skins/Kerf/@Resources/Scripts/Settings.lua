@@ -15,6 +15,8 @@ local FONTS    = {
 
 local FONT_LABELS = {}
 
+local FONT_PROFILES = {}
+local DEFAULT_PROFILE = { TimeTracking = -2, VLineStep = 0.63, VDigitGap = 0, TempTracking = 0 }
 
 local DISPLAYS = { 1.00, 1.33, 2.00 }
 local PARTS    = { 'Time', 'Seconds', 'Wave', 'Day', 'Date' }
@@ -205,6 +207,8 @@ end
 function Font(delta)
   local i = (fontIndex() - 1 + delta) % #FONTS + 1
   put('FontFace', FONTS[i], vars)
+  local prof = FONT_PROFILES[FONTS[i]] or {}
+  for k, val in pairs(DEFAULT_PROFILE) do put(k, prof[k] or val, vars) end
   refresh() Render()
 end
 

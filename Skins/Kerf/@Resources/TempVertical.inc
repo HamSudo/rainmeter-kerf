@@ -49,6 +49,7 @@ MeterStyle=sBase | sMono | sLetter
 Meter=String
 MeterStyle=sBase
 MeasureName=mTempText
+InlineSetting2=CharacterSpacing | 0 | #TempTracking# | 0
 Text=%1
 FontSize=(15*#Scale#)
 FontWeight=#DayWeight#
