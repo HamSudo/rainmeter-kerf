@@ -27,6 +27,9 @@ VDotR=0
 DisplayMode=0
 BaseScale=((#DisplayMode# = 1) ? 1 : ((#DisplayMode# = 2) ? 1.3333 : ((#DisplayMode# = 3) ? 2 : 1)))
 
+; Panel: 0 dark, 1 light
+PanelTheme=0
+
 ; Alignment margin (px)
 EdgeMargin=48
 

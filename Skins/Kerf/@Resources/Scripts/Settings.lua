@@ -56,13 +56,12 @@ local LAYOUT_FILES = {
   GPU   = { [0] = 'GPU.ini', 'Vertical.ini' },
 }
 
-local ON_BG, ON_FG   = '232,236,240,255', '14,17,21,255'
-local OFF_BG, OFF_FG = '255,255,255,16', '214,220,226,235'
-
 local vars, mods, target
 
 local function get(name) return SKIN:GetVariable(name) or '' end
 
+local function themed(name, fallback) local v = get(name) return v ~= '' and v or fallback end
+local ON_BG, ON_FG, OFF_BG, OFF_FG, RING
 local function getn(name) return tonumber(get(name)) or 0 end
 
 local function put(name, value, file)
@@ -122,7 +121,7 @@ function Render()
   local accent = get('Accent'):gsub('%s', '')
   for i, a in ipairs(ACCENTS) do
     local on = accent == a[1]
-    SKIN:Bang('!SetOption', 'Sw' .. i, 'Shape', 'Rectangle 1,1,22,22 | Fill Color ' .. a[1] .. ',255 | StrokeWidth 1.5 | Stroke Color 255,255,255,' .. (on and '255' or '0'))
+    SKIN:Bang('!SetOption', 'Sw' .. i, 'Shape', 'Rectangle 1,1,22,22 | Fill Color ' .. a[1] .. ',255 | StrokeWidth 1.5 | Stroke Color ' .. RING .. ',' .. (on and '255' or '0'))
   end
   local fi = fontIndex()
   SKIN:Bang('!SetOption', 'ValFont', 'Text', FONT_LABELS[FONTS[fi]] or FONTS[fi])
@@ -130,6 +129,8 @@ function Render()
   SKIN:Bang('!SetOption', 'ValFontCount', 'Text', fi .. ' / ' .. #FONTS)
   for i = 0, 2 do button('BtnI' .. i, getn('InkMode') == i) end
   for i = 0, #DISPLAYS do button('BtnD' .. i, getn('DisplayMode') == i) end
+  button('BtnPDark', getn('PanelTheme') ~= 1)
+  button('BtnPLight', getn('PanelTheme') == 1)
 
   SKIN:Bang('!UpdateMeter', '*')
   SKIN:Bang('!Redraw')
@@ -139,6 +140,9 @@ function Initialize()
   vars = get('@') .. 'Variables.inc'
   mods = get('@') .. 'Modules.inc'
   target = 'Clock'
+  ON_BG, ON_FG = themed('POnBg', '232,236,240,255'), themed('POnFg', '14,17,21,255')
+  OFF_BG, OFF_FG = themed('PBtnBg', '255,255,255,16'), themed('PBtnFg', '214,220,226,235')
+  RING = themed('PRing', '255,255,255')
   local wx, wy = getn('WORKAREAX'), getn('WORKAREAY')
   local ww, wh = getn('WORKAREAWIDTH'), getn('WORKAREAHEIGHT')
   SKIN:Bang('!Move', math.floor(wx + (ww - getn('W')) / 2), math.floor(wy + (wh - getn('H')) / 2))
@@ -248,6 +252,11 @@ end
 
 function Ink(n)
   put('InkMode', n, vars) refresh() Render()
+end
+
+function Theme(n)
+  put('PanelTheme', n, vars)
+  SKIN:Bang('!Refresh')
 end
 
 function Display(i)
