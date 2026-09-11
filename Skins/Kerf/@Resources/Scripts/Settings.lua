@@ -15,6 +15,7 @@ local FONTS    = {
 
 local FONT_LABELS = {}
 
+
 local DISPLAYS = { 1.00, 1.33, 2.00 }
 local PARTS    = { 'Time', 'Seconds', 'Wave', 'Day', 'Date' }
 local LAYOUT_NAMES = {
@@ -127,6 +128,31 @@ end
 function Trans(delta)
   local v = math.min(100, math.max(0, getn(target .. 'Trans') + delta))
   put(target .. 'Trans', v, mods) refresh(target) Render()
+end
+
+local LIMITS = { Size = { 10, 400 }, Trans = { 0, 100 } }
+
+function Edit(what)
+  local meter = SKIN:GetMeter('Val' .. what)
+  if not meter then return end
+  local function opt(k, v) SKIN:Bang('!SetOption', 'mInput', k, v) end
+
+  opt('X', meter:GetX() + 10) opt('Y', meter:GetY() + 6)
+  opt('W', math.max(30, meter:GetW() - 20)) opt('H', math.max(12, meter:GetH() - 12))
+  opt('DefaultValue', getn(target .. what))
+  editing = what
+  SKIN:Bang('!UpdateMeasure', 'mInput')
+  SKIN:Bang('!CommandMeasure', 'mInput', 'ExecuteBatch 1')
+end
+
+function Typed(text)
+  local what = editing
+  if not what then return end
+  local v = tonumber((text or ''):match('%-?[%d%.]+'))
+  if not v then return end
+  local lim = LIMITS[what]
+  v = math.floor(math.min(lim[2], math.max(lim[1], v)) + 0.5)
+  put(target .. what, v, mods) refresh(target) Render()
 end
 
 function Hover(n)
