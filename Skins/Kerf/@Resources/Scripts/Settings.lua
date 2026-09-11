@@ -75,6 +75,10 @@ function Render()
     if isClock then button('BtnS' .. part, getn('ClockShow' .. part) == 1) end
   end
   SKIN:Bang(isClock and '!HideMeter' or '!ShowMeter', 'NoteShow')
+  local twelve = get('HourFormat') == '%I'
+  for _, m in ipairs({ 'LblFormat', 'BtnFmt24', 'BtnFmt12' }) do SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', m) end
+  button('BtnFmt24', not twelve)
+  button('BtnFmt12', twelve)
 
   local accent = get('Accent'):gsub('%s', '')
   for i, a in ipairs(ACCENTS) do
@@ -136,6 +140,15 @@ function Layout(n)
   end
   SKIN:Bang('!ActivateConfig', 'Kerf\\' .. target, file)
   Render()
+end
+
+function Format(hours)
+  if hours == 12 then
+    put('TimeFormat', '%I:%M', vars) put('HourFormat', '%I', vars)
+  else
+    put('TimeFormat', '%H:%M', vars) put('HourFormat', '%H', vars)
+  end
+  refresh('Clock') Render()
 end
 
 function Toggle(part)

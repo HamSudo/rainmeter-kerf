@@ -18,11 +18,6 @@ Measure=Time
 Format=%S
 UpdateDivider=15
 
-[mTag]
-Measure=Time
-Format=#TagFormat#
-UpdateDivider=30
-
 [mDay]
 Measure=Time
 Format=%A
