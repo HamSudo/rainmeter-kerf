@@ -114,9 +114,10 @@ function Render()
   SKIN:Bang('!HideMeter', 'NoteLayout')
 
   local edges = isClock and layout == 2
-  for i = 0, 5 do
+  button('BtnA0', getn(target .. 'Align') == 0)
+  for i = 1, 5 do
     if i >= 4 then SKIN:Bang(edges and '!ShowMeter' or '!HideMeter', 'BtnA' .. i) end
-    button('BtnA' .. i, getn(target .. 'Align') == i)
+    button('BtnA' .. i, false)
   end
 
   for _, part in ipairs(PARTS) do
@@ -209,7 +210,7 @@ function Hover(n)
 end
 
 function Align(n)
-  SKIN:Bang('!SetVariable', target .. 'Align', n)
+  SKIN:Bang('!SetVariable', target .. 'Align', n == 0 and 0 or 1)
   SKIN:Bang('!CommandMeasure', 'mAlignScript', 'Snap(' .. n .. ')', 'Kerf\\' .. target)
   Render()
 end
@@ -218,9 +219,7 @@ function Layout(n)
   local file = LAYOUT_FILES[target][n]
   if not file then return end
   put(target .. 'Layout', n, mods)
-  if not (target == 'Clock' and n == 2) and getn(target .. 'Align') >= 4 then
-    put(target .. 'Align', 0, mods)
-  end
+  if not (target == 'Clock' and n == 2) then put(target .. 'SnapY', 0, mods) end
   SKIN:Bang('!ActivateConfig', 'Kerf\\' .. target, file)
   Render()
 end
