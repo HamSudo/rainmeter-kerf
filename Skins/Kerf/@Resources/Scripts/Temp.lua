@@ -4,7 +4,7 @@ function Initialize()
   kind = SELF:GetOption('Kind', 'CPU')
   raw, tick, gpuKind = SKIN:GetMeasure('mRaw'), SKIN:GetMeasure('mTick'), SKIN:GetMeasure('mGpuKind')
   exe = SKIN:GetVariable('@') .. 'Bin\\KerfSensors.exe'
-  lastLaunch, shown = -1000, nil
+  lastLaunch, shown, good = -1000, nil, 0
 end
 
 local function exists(p)
@@ -30,6 +30,8 @@ function Update()
   end
 
   if kind == 'GPU' and gpuKind:GetStringValue() == 'iGPU' then setLabel('iGPU') else setLabel(kind) end
-  if not fresh then return 0 end
-  return tonumber(raw:GetStringValue()) or 0
+
+  local v = tonumber(raw:GetStringValue())
+  if v and v > 5 and v < 125 then good = v end
+  return good
 end

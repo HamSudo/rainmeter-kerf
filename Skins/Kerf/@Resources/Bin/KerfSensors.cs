@@ -140,6 +140,7 @@ static class Program
             var adapters = GetAdapters();
             DateTime refreshed = DateTime.UtcNow;
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Sensors");
+            double? lastCpu = null, lastGpu = null; string lastKind = "", lastName = "";
             DateTime lastTemps = DateTime.MinValue;
 
             while (true)
@@ -176,10 +177,12 @@ static class Program
                         break;
                     }
 
-                    key.SetValue("CPU", F(cpu));
-                    key.SetValue("GPU", F(gpu));
-                    key.SetValue("GPUKind", kind);
-                    key.SetValue("GPUName", name);
+                    if (cpu.HasValue) lastCpu = cpu;
+                    if (gpu.HasValue) { lastGpu = gpu; lastKind = kind; lastName = name; }
+                    key.SetValue("CPU", F(lastCpu));
+                    key.SetValue("GPU", F(lastGpu));
+                    key.SetValue("GPUKind", lastKind);
+                    key.SetValue("GPUName", lastName);
                     key.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
                 }
 
