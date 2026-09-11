@@ -23,8 +23,9 @@ VDotH=0.083
 VDotGap=0.196
 VDotR=0
 
-; Display scale: 1.00 at 1080p, 1.33 at 1440p, 2.00 at 4K
-BaseScale=1.00
+; Display: 0 auto, 1 1080p, 2 1440p, 3 4K
+DisplayMode=0
+BaseScale=((#DisplayMode# = 1) ? 1 : ((#DisplayMode# = 2) ? 1.3333 : ((#DisplayMode# = 3) ? 2 : 1)))
 
 ; Alignment margin (px)
 EdgeMargin=48

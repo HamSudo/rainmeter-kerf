@@ -3,12 +3,15 @@
 ; ClockLayout 0 classic, 1 vertical, 2 horizontal. CPU/GPULayout 0 horizontal, 1 vertical.
 [Variables]
 ClockSize=100
+ClockAutoScale=1.00
 ClockTrans=0
 ClockHover=0
 CPUSize=100
+CPUAutoScale=1.00
 CPUTrans=0
 CPUHover=0
 GPUSize=100
+GPUAutoScale=1.00
 GPUTrans=0
 GPUHover=0
 ClockAlign=0

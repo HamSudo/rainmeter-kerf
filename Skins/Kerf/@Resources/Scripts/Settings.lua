@@ -126,7 +126,7 @@ function Render()
   SKIN:Bang('!SetOption', 'ValFont', 'FontFace', FONTS[fi])
   SKIN:Bang('!SetOption', 'ValFontCount', 'Text', fi .. ' / ' .. #FONTS)
   for i = 0, 2 do button('BtnI' .. i, getn('InkMode') == i) end
-  for i, s in ipairs(DISPLAYS) do button('BtnD' .. i, math.abs(getn('BaseScale') - s) < 0.01) end
+  for i = 0, #DISPLAYS do button('BtnD' .. i, getn('DisplayMode') == i) end
 
   SKIN:Bang('!UpdateMeter', '*')
   SKIN:Bang('!Redraw')
@@ -243,5 +243,5 @@ function Ink(n)
 end
 
 function Display(i)
-  put('BaseScale', string.format('%.2f', DISPLAYS[i]), vars) refresh() Render()
+  put('DisplayMode', i, vars) refresh() Render()
 end

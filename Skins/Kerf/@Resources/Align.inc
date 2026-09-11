@@ -1,3 +1,10 @@
+[mDPI]
+Measure=Registry
+RegHKey=HKEY_CURRENT_USER
+RegKey=Control Panel\Desktop\WindowMetrics
+RegValue=AppliedDPI
+UpdateDivider=-1
+
 [mAlignScript]
 Measure=Script
 ScriptFile=#@#Scripts\Align.lua
