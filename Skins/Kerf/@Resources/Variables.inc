@@ -2,7 +2,7 @@
 [Variables]
 
 ; Fonts; weights 300 / 400 / 700
-FontFace=Hanken Grotesk
+FontFace=Tektur
 MonoFace=JetBrains Mono
 TimeSize=100
 TimeWeight=400
@@ -18,11 +18,11 @@ MicroTracking=2
 ; Set by the font picker
 VDigitGap=0
 TempTracking=0
-VCapTop=0.226
-VBase=0.767
-VDotW=0.058
-VDotH=0.083
-VDotGap=0.196
+VCapTop=0.231
+VBase=0.769
+VDotW=0.069
+VDotH=0.077
+VDotGap=0.200
 VDotR=0
 
 ; Display: 0 auto, 1 1080p, 2 1440p, 3 4K

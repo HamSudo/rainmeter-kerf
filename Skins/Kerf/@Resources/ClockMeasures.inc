@@ -101,3 +101,9 @@ Plugin=AudioLevel
 Parent=mAudio
 Type=Band
 BandIdx=1
+
+[mFirstRun]
+Measure=Calc
+Formula=#FirstRun#
+IfCondition=mFirstRun = 1
+IfTrueAction=[!WriteKeyValue Variables FirstRun 0 "#@#Modules.inc"][!SetVariable FirstRun 0][!ActivateConfig "Kerf\CPU" "CPU.ini"][!ActivateConfig "Kerf\GPU" "GPU.ini"][!ActivateConfig "Kerf\Settings" "Settings.ini"]

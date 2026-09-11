@@ -18,7 +18,9 @@ local FONTS    = {
   'Hanken Grotesk', 'JetBrains Mono', 'Rajdhani', 'Orbitron', 'Teko',
   'Audiowide', 'Russo One', 'Chakra Petch', 'Bebas Neue', 'Share Tech Mono',
   'Doto', 'Space Mono', 'Tilt Neon', 'VT323', 'Tektur',
+  'Cyber Track',
 }
+local OPTIONAL_FONTS = { ['Cyber Track'] = 'Cyber Track.otf' }
 
 local FONT_LABELS = {}
 
@@ -41,6 +43,7 @@ local FONT_METRICS = {
   ['Tilt Neon']       = { VCapTop = 0.238, VBase = 0.784, VDotW = 0.071, VDotH = 0.123, VDotGap = 0.162, VDotR = 0.29 },
   ['VT323']           = { VCapTop = 0.240, VBase = 0.800, VDotW = 0.108, VDotH = 0.160, VDotGap = 0.160, VDotR = 0.05 },
   ['Tektur']          = { VCapTop = 0.231, VBase = 0.769, VDotW = 0.069, VDotH = 0.077, VDotGap = 0.200, VDotR = 0.00 },
+  ['Cyber Track']     = { VCapTop = 0.100, VBase = 0.800, VDotW = 0.120, VDotH = 0.120, VDotGap = 0.290, VDotR = 0.00 },
 }
 local DEFAULT_METRICS = { VCapTop = 0.22, VBase = 0.77, VDotW = 0.08, VDotH = 0.08, VDotGap = 0.2, VDotR = 0.3 }
 local DISPLAYS = { 1.00, 1.33, 2.00 }
@@ -65,7 +68,7 @@ local FONT_WEIGHTS = {
   ['Bebas Neue'] = { 400 },               ['Share Tech Mono'] = { 400 },
   ['Doto'] = { 300, 400, 700 },           ['Space Mono'] = { 400, 700 },
   ['Tilt Neon'] = { 400 },                ['VT323'] = { 400 },
-  ['Tektur'] = { 400, 700 },
+  ['Tektur'] = { 400, 700 },              ['Cyber Track'] = { 400 },
 }
 local WEIGHT_PARTS = { 'All', 'Time', 'Day', 'Date' }
 local weightPart = 'All'
@@ -184,6 +187,13 @@ end
 function Initialize()
   vars = get('@') .. 'Variables.inc'
   mods = get('@') .. 'Modules.inc'
+  for i = #FONTS, 1, -1 do
+    local file = OPTIONAL_FONTS[FONTS[i]]
+    if file then
+      local h = io.open(get('@') .. 'Fonts\\' .. file, 'rb')
+      if h then h:close() else table.remove(FONTS, i) end
+    end
+  end
   target = 'General'
   ON_BG, ON_FG = themed('POnBg', '232,236,240,255'), themed('POnFg', '14,17,21,255')
   OFF_BG, OFF_FG = themed('PBtnBg', '255,255,255,16'), themed('PBtnFg', '214,220,226,235')
@@ -391,6 +401,7 @@ function FontMenu(open)
   if open == nil then open = not menuOpen else open = open == 1 end
   menuOpen = open
   local verb = open and '!ShowMeter' or '!HideMeter'
+  SKIN:Bang('!SetOption', 'FontMenuBg', 'Shape', 'Rectangle 0,0,([ValFont:W]),' .. (#FONTS * 24 + 8) .. ',6 | Fill Color #PInputBg# | Stroke Color #PStroke# | StrokeWidth 1')
   SKIN:Bang(verb, 'FontCatch')
   SKIN:Bang(verb, 'FontMenuBg')
   for i, name in ipairs(FONTS) do
