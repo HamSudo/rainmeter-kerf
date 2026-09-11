@@ -118,6 +118,20 @@ static class Backdrop
         return c == "Progman" || c == "WorkerW" || c == "RainmeterMeterWindow";
     }
 
+    public static string WallpaperSignature()
+    {
+        string s = "";
+        try
+        {
+            using (var k = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop")) s += Convert.ToString(k.GetValue("WallPaper", ""));
+            using (var k = Registry.CurrentUser.OpenSubKey(@"Control Panel\Colors")) s += "|" + Convert.ToString(k.GetValue("Background", ""));
+            string t = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Themes\TranscodedWallpaper");
+            if (File.Exists(t)) s += "|" + File.GetLastWriteTimeUtc(t).Ticks;
+        }
+        catch { }
+        return s;
+    }
+
     static double Lin(int v) { double c = v / 255.0; return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4); }
 
     public static double? Luminance(RECT r)
@@ -223,6 +237,7 @@ static class Program
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Sensors");
             RegistryKey ink = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Ink");
             double? lastCpu = null, lastGpu = null; string lastKind = "", lastName = "";
+            string lastLayout = null, lastWall = null;
             DateTime lastSample = DateTime.MinValue, lastTemps = DateTime.MinValue;
             var inv = System.Globalization.CultureInfo.InvariantCulture;
 
@@ -233,15 +248,32 @@ static class Program
 
                 ink.SetValue("Alive", now);
 
-                if (mods.Count > 0 && (DateTime.UtcNow - lastSample).TotalSeconds >= 5)
+                string layout = string.Join(";", mods.OrderBy(m => m.Key).Select(m => m.Key + ":" + m.Value.L + "," + m.Value.T + "," + m.Value.R + "," + m.Value.B));
+                string wall = Backdrop.WallpaperSignature();
+                double recheck = 10;
+                double.TryParse(Convert.ToString(ink.GetValue("InkRecheckMinutes", "10")), System.Globalization.NumberStyles.Float, inv, out recheck);
+                bool due = recheck > 0 && (DateTime.UtcNow - lastSample).TotalMinutes >= recheck;
+                if (mods.Count > 0 && (layout != lastLayout || wall != lastWall || due))
                 {
-                    foreach (var mod in mods)
+                    var readings = new Dictionary<string, List<double>>();
+                    for (int r = 0; r < 3; r++)
                     {
-                        double? lum = Backdrop.Luminance(mod.Value);
-                        if (lum.HasValue) ink.SetValue(mod.Key, lum.Value.ToString("0.000", inv));
+                        if (r > 0) Thread.Sleep(1500);
+                        foreach (var mod in mods)
+                        {
+                            double? lum = Backdrop.Luminance(mod.Value);
+                            if (!lum.HasValue) continue;
+                            if (!readings.ContainsKey(mod.Key)) readings[mod.Key] = new List<double>();
+                            readings[mod.Key].Add(lum.Value);
+                        }
                     }
-                    ink.SetValue("Tick", now);
-                    lastSample = DateTime.UtcNow;
+                    foreach (var rd in readings)
+                    {
+                        rd.Value.Sort();
+                        ink.SetValue(rd.Key, rd.Value[rd.Value.Count / 2].ToString("0.000", inv));
+                    }
+                    if (readings.Count > 0) ink.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+                    lastLayout = layout; lastWall = wall; lastSample = DateTime.UtcNow;
                 }
 
                 if ((DateTime.UtcNow - lastTemps).TotalSeconds >= 10)

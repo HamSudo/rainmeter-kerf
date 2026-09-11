@@ -7,7 +7,7 @@ end
 
 local function m(name) return SKIN:GetMeasure(name) end
 
-local CONFIRM = 2
+local CONFIRM = 1
 local MARGIN = 0.03
 hist, lastTick, decided = {}, nil, nil
 
