@@ -26,10 +26,18 @@ function Update()
       local natural = ref:GetW()
       local size = math.min(maxSize, maxSize * 0.9 * W / natural)
       local n = count(m:GetStringValue())
-      local spacing = n > 1 and (W - natural * size / maxSize) / (n - 1) or 0
+      local naturalAt = natural * size / maxSize
+      local px = n > 1 and (W - naturalAt) / (n - 1) or 0
+
+      local meter = SKIN:GetMeter(t.meter)
+      if t.applied and t.applied ~= 0 and meter and math.abs(size - (t.appliedSize or 0)) < 0.01 then
+        local k = (meter:GetW() - naturalAt) / (n * t.applied)
+        if k > 0.3 and k < 3 then t.k = k end
+      end
+      local spacing = px / (t.k or 1)
       local sig = string.format('%.2f|%.2f', size, spacing)
-      if sig ~= t.last then
-        t.last = sig
+      if sig ~= t.last and math.abs(spacing - (t.applied or 0)) > 0.05 or t.appliedSize ~= size then
+        t.last, t.applied, t.appliedSize = sig, spacing, size
         SKIN:Bang('!SetOption', t.meter, 'FontSize', string.format('%.2f', size))
         SKIN:Bang('!SetOption', t.meter, 'InlineSetting2', string.format('CharacterSpacing | 0 | %.2f | 0', spacing))
         SKIN:Bang('!UpdateMeter', t.meter)
