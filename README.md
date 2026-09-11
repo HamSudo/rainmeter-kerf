@@ -5,13 +5,19 @@ temperatures read straight from Windows -- no HWiNFO, no extra software.
 
 ## Install
 
-Download `Kerf-0.5.0.rmskin` from the release and double-click it.
+Download `Kerf-0.6.0.rmskin` from the release and double-click it.
 
 ## Modules
 
 - **Clock** -- time, seconds, a music waveform that follows what is playing,
   the day and the date.
 - **CPU** and **GPU** -- temperature with a small scale underneath.
+
+## Alignment
+
+Every module can follow your mouse ("Follow") or be pinned to an edge, the
+middle or a corner of its monitor with an even margin. Pinned modules stay put
+when their contents change size.
 
 ## Layouts
 

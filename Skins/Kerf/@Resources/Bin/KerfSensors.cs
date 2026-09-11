@@ -237,11 +237,10 @@ static class Program
     [STAThread]
     static void Main(string[] args)
     {
-        bool once = args.Any(a => a == "--once");
         bool owned;
         using (var mutex = new Mutex(true, @"Local\KerfSensors", out owned))
         {
-            if (!owned && !once) return;
+            if (!owned) return;
 
             Backdrop.SetProcessDPIAware();
             var adapters = GetAdapters();
@@ -259,7 +258,7 @@ static class Program
                 string now = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
                 var mods = Backdrop.Modules();
 
-                bool visible = once || mods.Values.Any(Backdrop.Visible);
+                bool visible = mods.Values.Any(Backdrop.Visible);
                 bool shown = visible && !wasVisible;
                 wasVisible = visible;
                 ink.SetValue("Visible", visible ? "1" : "0");
@@ -317,15 +316,6 @@ static class Program
                         {
                             var ig = adapters.FirstOrDefault(a => a.Integrated);
                             if (ig != null) { gpu = cpu; kind = "iGPU"; name = ig.Name + " (shares CPU die)"; }
-                        }
-
-                        if (once)
-                        {
-                            var lines = adapters.Select(a => string.Format("{0,-45} integrated={1} temp={2}", a.Name, a.Integrated, Kmt.TempDeci(a.Handle) / 10.0)).ToList();
-                            lines.Add("Thermal zones: " + string.Join(", ", zones.Select(z => z.Key)));
-                            lines.Add(string.Format("CPU={0}  GPU={1} ({2} {3})", F(cpu), F(gpu), kind, name));
-                            File.WriteAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "KerfSensors.log"), lines);
-                            break;
                         }
 
                         if (cpu.HasValue) lastCpu = cpu;

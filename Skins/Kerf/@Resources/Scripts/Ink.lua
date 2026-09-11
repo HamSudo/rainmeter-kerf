@@ -90,7 +90,6 @@ function CheckSource()
   SKIN:Bang('!SetVariable', 'InkSource', k)
   SKIN:Bang('!UpdateMeasure', 'mChameleon')
   SKIN:Bang('!UpdateMeasure', 'mAvgColor')
-  print('Kerf ink source: ' .. k .. (src and (' (' .. src .. ')') or ''))
 end
 
 local function lin(c)
