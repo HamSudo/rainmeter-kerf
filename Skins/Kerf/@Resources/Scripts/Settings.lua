@@ -26,6 +26,7 @@ function Render()
   for _, m in ipairs(MODULES) do button('BtnT' .. m, m == target) end
   SKIN:Bang('!SetOption', 'ValSize', 'Text', getn(target .. 'Size') .. '%')
   SKIN:Bang('!SetOption', 'ValTrans', 'Text', getn(target .. 'Trans') .. '%')
+  for i = 0, 3 do button('BtnH' .. i, getn(target .. 'Hover') == i) end
 
   SKIN:Bang('!UpdateMeter', '*')
   SKIN:Bang('!Redraw')
@@ -53,5 +54,9 @@ end
 function Trans(delta)
   local v = math.min(100, math.max(0, getn(target .. 'Trans') + delta))
   put(target .. 'Trans', v, mods) refresh(target) Render()
+end
+
+function Hover(n)
+  put(target .. 'Hover', n, mods) refresh(target) Render()
 end
 
