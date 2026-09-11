@@ -25,7 +25,7 @@ function Initialize()
   lengthM = SELF:GetOption('LengthMeasure', '')
   centerM = SELF:GetOption('CenterYMeasure', '')
   slots = tonumber(SELF:GetOption('Slots', '0')) or 0
-  last, lastSize = '', nil
+  last, ratio, measuredAt = '', nil, nil
 end
 
 local function items()
@@ -50,7 +50,8 @@ function Update()
   local maxSize = num(SELF:GetOption('MaxSize', '10'))
 
   local first = SKIN:GetMeter(prefix .. '1')
-  local r = (first and lastSize and first:GetH() > 0) and first:GetH() / lastSize or 1.35
+  if not ratio and measuredAt and first and first:GetH() > 0 then ratio = first:GetH() / measuredAt end
+  local r = ratio or 1.35
 
   local L = lengthM ~= '' and (SKIN:GetMeasure(lengthM):GetValue()) or num(SELF:GetOption('LengthFormula', '0'))
   local top
@@ -69,7 +70,7 @@ function Update()
   for i = 1, n do sig = sig .. '|' .. tostring(list[i]) end
   if sig == last then return n end
   last = sig
-  lastSize = size
+  if not ratio then measuredAt = size end
 
   for i = 1, count do
     local meter = prefix .. i
