@@ -113,10 +113,9 @@ function Render()
   end
   SKIN:Bang('!HideMeter', 'NoteLayout')
 
-  local edges = isClock and layout == 2
   button('BtnA0', getn(target .. 'Align') == 0)
   for i = 1, 5 do
-    if i >= 4 then SKIN:Bang(edges and '!ShowMeter' or '!HideMeter', 'BtnA' .. i) end
+    SKIN:Bang('!ShowMeter', 'BtnA' .. i)
     button('BtnA' .. i, false)
   end
 
@@ -219,7 +218,6 @@ function Layout(n)
   local file = LAYOUT_FILES[target][n]
   if not file then return end
   put(target .. 'Layout', n, mods)
-  if not (target == 'Clock' and n == 2) then put(target .. 'SnapY', 0, mods) end
   SKIN:Bang('!ActivateConfig', 'Kerf\\' .. target, file)
   Render()
 end
