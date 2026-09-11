@@ -71,6 +71,7 @@ local WEIGHT_PARTS = { 'All', 'Time', 'Day', 'Date' }
 local weightPart = 'All'
 
 local vars, mods, target
+local menuOpen = false
 
 local function get(name) return SKIN:GetVariable(name) or '' end
 
@@ -142,7 +143,6 @@ function Render()
   local fi = fontIndex()
   SKIN:Bang('!SetOption', 'ValFont', 'Text', FONT_LABELS[FONTS[fi]] or FONTS[fi])
   SKIN:Bang('!SetOption', 'ValFont', 'FontFace', FONTS[fi])
-  SKIN:Bang('!SetOption', 'ValFontCount', 'Text', fi .. ' / ' .. #FONTS)
   for i = 0, 2 do button('BtnI' .. i, getn('InkMode') == i) end
   for i = 0, #DISPLAYS do button('BtnD' .. i, getn('DisplayMode') == i) end
   button('BtnPDark', getn('PanelTheme') ~= 1)
@@ -172,6 +172,7 @@ function Initialize()
 end
 
 function Target(m)
+  if menuOpen then FontMenu(0) end
   target = m
   Render()
 end
@@ -347,6 +348,42 @@ function fontIndex()
   local current = get('FontFace')
   for i, name in ipairs(FONTS) do if name == current then return i end end
   return 1
+end
+
+local function optColors(i, hover)
+  local sel = i == fontIndex()
+  SKIN:Bang('!SetOption', 'FontOpt' .. i, 'SolidColor', sel and ON_BG or (hover and OFF_BG or '0,0,0,1'))
+  SKIN:Bang('!SetOption', 'FontOpt' .. i, 'FontColor', sel and ON_FG or OFF_FG)
+end
+
+function FontMenu(open)
+  if open == nil then open = not menuOpen else open = open == 1 end
+  menuOpen = open
+  local verb = open and '!ShowMeter' or '!HideMeter'
+  SKIN:Bang(verb, 'FontCatch')
+  SKIN:Bang(verb, 'FontMenuBg')
+  for i, name in ipairs(FONTS) do
+    if open then
+      SKIN:Bang('!SetOption', 'FontOpt' .. i, 'Text', FONT_LABELS[name] or name)
+      SKIN:Bang('!SetOption', 'FontOpt' .. i, 'FontFace', name)
+      optColors(i, false)
+    end
+    SKIN:Bang(verb, 'FontOpt' .. i)
+  end
+  SKIN:Bang('!UpdateMeter', '*')
+  SKIN:Bang('!Redraw')
+end
+
+function FontHover(i, on)
+  if not menuOpen then return end
+  optColors(i, on == 1)
+  SKIN:Bang('!UpdateMeter', 'FontOpt' .. i)
+  SKIN:Bang('!Redraw')
+end
+
+function PickFont(i)
+  FontMenu(0)
+  if i ~= fontIndex() then Font(i - fontIndex()) end
 end
 
 function Font(delta)
