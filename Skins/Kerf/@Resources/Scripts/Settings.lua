@@ -11,6 +11,8 @@ local FONTS    = { 'Hanken Grotesk', 'JetBrains Mono' }
 
 local FONT_LABELS = {}
 
+local DISPLAYS = { 1.00, 1.33, 2.00 }
+
 local ON_BG, ON_FG   = '232,236,240,255', '14,17,21,255'
 local OFF_BG, OFF_FG = '255,255,255,16', '214,220,226,235'
 
@@ -49,6 +51,8 @@ function Render()
   SKIN:Bang('!SetOption', 'ValFont', 'Text', FONT_LABELS[FONTS[fi]] or FONTS[fi])
   SKIN:Bang('!SetOption', 'ValFont', 'FontFace', FONTS[fi])
   SKIN:Bang('!SetOption', 'ValFontCount', 'Text', fi .. ' / ' .. #FONTS)
+  for i = 0, 2 do button('BtnI' .. i, getn('InkMode') == i) end
+  for i, s in ipairs(DISPLAYS) do button('BtnD' .. i, math.abs(getn('BaseScale') - s) < 0.01) end
 
   SKIN:Bang('!UpdateMeter', '*')
   SKIN:Bang('!Redraw')
@@ -101,3 +105,10 @@ function Font(delta)
   refresh() Render()
 end
 
+function Ink(n)
+  put('InkMode', n, vars) refresh() Render()
+end
+
+function Display(i)
+  put('BaseScale', string.format('%.2f', DISPLAYS[i]), vars) refresh() Render()
+end
