@@ -20,6 +20,11 @@ UpdateDivider=15
 
 [mDay]
 Measure=Time
+Format=%a
+UpdateDivider=30
+
+[mDayFull]
+Measure=Time
 Format=%A
 UpdateDivider=30
 
