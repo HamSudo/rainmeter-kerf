@@ -10,7 +10,12 @@ local function m(name) return SKIN:GetMeasure(name) end
 local MARGIN = 0.03
 local TAU = 8
 local DWELL = 10
-lastTick, decided, ema, emaAt, flippedAt = nil, nil, nil, nil, -100
+local SPAN = 180
+local CALM = 60
+local SWING = 0.12
+local INK_LIGHT, INK_DARK = 0.92, 0.0077
+window = {}
+lastTick, decided, ema, emaAt, flippedAt, worst, restlessUntil = nil, nil, nil, nil, -100, nil, 0
 
 function Initialize()
   avg, we64, we32 = m('mAvgColor'), m('mWE64'), m('mWE32')
@@ -135,19 +140,41 @@ function Update()
         ema = ema + (screen - ema) * (1 - math.exp(-dt / TAU))
       end
       emaAt = now
+
+      window[#window + 1] = { now, screen }
+      while #window > 0 and now - window[1][1] > SPAN do table.remove(window, 1) end
+      local lo, hi = screen, screen
+      for _, s in ipairs(window) do
+        lo = math.min(lo, s[2])
+        hi = math.max(hi, s[2])
+      end
+      -- one steady stretch does not mean a moving wallpaper has settled
+      if hi - lo > SWING then restlessUntil = now + CALM end
+      local restless = now < (restlessUntil or 0)
+
+      local want
+      if restless then
+        -- the backdrop keeps changing under the text, so stop chasing it:
+        -- take the ink that reads best against the worst frame, and lean on the shadow
+        local light = (INK_LIGHT + 0.05) / (hi + 0.05)
+        local dark = (lo + 0.05) / (INK_DARK + 0.05)
+        want = dark > light and th + 0.1 or th - 0.1
+        worst = math.max(light, dark)
+      else
+        worst = nil
+        if ema > th + MARGIN then want = ema
+        elseif ema < th - MARGIN then want = ema end
+      end
+
       if decided == nil then
-        decided = ema
-        flippedAt = now
-      elseif now - flippedAt >= DWELL then
-        local wantsDark = ema > th + MARGIN
-        local wantsLight = ema < th - MARGIN
-        if (wantsDark and decided <= th) or (wantsLight and decided > th) then
-          decided = ema
-          flippedAt = now
-        end
+        decided, flippedAt = want or ema, now
+      elseif want and (want > th) ~= (decided > th) then
+        -- a restless backdrop picked the readable side: take it at once,
+        -- otherwise wait out the dwell so passing frames cannot flip the ink
+        if restless or now - flippedAt >= DWELL then decided, flippedAt = want, now end
       end
     end
-    local con = tonumber(screenCon and screenCon:GetStringValue() or '')
+    local con = worst or tonumber(screenCon and screenCon:GetStringValue() or '')
     setHalo(con and con > 0 and math.max(1, math.min(2.5, 4.5 / con)) or 1)
     if decided then return decided end
   end
