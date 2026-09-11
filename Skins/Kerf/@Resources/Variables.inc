@@ -27,9 +27,10 @@ TagFormat=24H
 WaveHeight=30
 WaveAmp=0.9
 WaveStroke=1.5
-WaveFrequency=6
-WaveSpeed=0.14
-WaveGain=3
+WaveFrequency=12
+WaveSpeed=0.05
+WaveSpread=1.2
+WaveGain=2
 WaveEcho1=90
 WaveEcho2=40
 
