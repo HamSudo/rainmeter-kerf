@@ -7,7 +7,10 @@ local ACCENTS  = {
   { '226,230,234', '84,90,96'   },
 }
 
-local FONTS    = { 'Hanken Grotesk', 'JetBrains Mono' }
+local FONTS    = {
+  'Hanken Grotesk', 'JetBrains Mono', 'Rajdhani', 'Orbitron', 'Teko',
+  'Audiowide', 'Russo One', 'Chakra Petch', 'Bebas Neue', 'Share Tech Mono',
+}
 
 local FONT_LABELS = {}
 

@@ -1,0 +1,30 @@
+KERF - credits
+==============
+
+Fonts (in @Resources\Fonts)
+---------------------------
+SIL Open Font License 1.1 (https://openfontlicense.org), via Google Fonts:
+  Hanken Grotesk ..... Alfredo Marco Pradil, The Hanken Grotesk Project Authors
+  JetBrains Mono ..... Philipp Nurullin, Konstantin Bulenkov (JetBrains)
+  Rajdhani ........... Satya Rajpurohit, Jyotish Sonowal (Indian Type Foundry)
+  Teko ............... Indian Type Foundry
+  Orbitron ........... Matt McInerney
+  Audiowide .......... Brian J. Bonislawsky (Astigmatic)
+  Russo One .......... Jovanny Lemonad
+  Chakra Petch ....... Cadson Demak
+  Bebas Neue ......... Ryoichi Tsunekawa (Dharma Type)
+  Share Tech Mono .... Carrois Apostrophe
+
+Each font's license is next to it in @Resources\Fonts (<Font>-OFL.txt).
+
+Optional, not included (commercial): if you own Cyber Track by Sigit Dwipa
+Raharjo / Nirmana Visual, drop "Cyber Track.otf" into @Resources\Fonts and it
+appears in the font picker.
+
+Software
+--------
+  Rainmeter ................. rainmeter.net (AudioLevel, RunCommand, UsageMonitor,
+                              Win7Audio and ActionTimer plugins)
+  Chameleon plugin .......... socks-the-fox (github.com/socks-the-fox/Chameleon)
+  Waveform style ............ after the classic Siri waveform / siriwave
+  Bin\KerfSensors.exe ....... Kerf's own helper; Windows APIs only
