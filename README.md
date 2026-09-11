@@ -5,26 +5,29 @@ temperatures read straight from Windows -- no HWiNFO, no extra software.
 
 ## Install
 
-Download `Kerf-0.1.0.rmskin` from the release and double-click it.
-Rainmeter installs the skin and the Chameleon plugin it needs.
+Download `Kerf-0.2.0.rmskin` from the release and double-click it.
 
 ## Modules
 
-- **Clock** -- time, seconds, a music waveform, the day and the date, all as
-  one movable unit.
-- **CPU** and **GPU** -- temperature, with a small scale underneath.
+- **Clock** -- time, seconds, a music waveform that follows what is playing,
+  the day and the date.
+- **CPU** and **GPU** -- temperature with a small scale underneath.
+
+## Customize Kerf
+
+Right-click any module and choose **Customize Kerf**. The panel sets, per
+module, its size, transparency, what happens on hover and how it aligns; and,
+for all modules at once, the accent colour, the font, the ink mode and the
+display scale. The clock's parts (time, seconds, wave, day, date) can be shown
+or hidden there too.
+
+Kerf replaces Rainmeter's own Transparency and On-hover settings. If you use
+them from Rainmeter's menu, Kerf adopts the values and resets them.
 
 ## Adaptive ink
 
-Kerf reads whatever is behind it -- a Wallpaper Engine wallpaper, a solid
-colour or a Windows wallpaper -- and switches between light and dark ink. Set
-it by hand from the right-click menu (Ink: auto / always light / always dark).
-
-## Alignment
-
-Right-click any module to align it to the left edge, the centre or the right
-edge of its monitor, or leave it on "follow position", where it stays where
-you drop it and its text follows the third of the screen it sits in.
+Kerf reads what is behind it -- Wallpaper Engine, a solid colour or a Windows
+wallpaper -- and switches between light and dark ink.
 
 ## Fonts
 
@@ -38,10 +41,9 @@ the machine works too -- only the family name matters.
 
 ## Sensors
 
-`@Resources\Bin\KerfSensors.cs` is a small helper that reads the CPU's
-thermal zone and the GPU's D3DKMT performance data -- the same numbers Task
-Manager shows. Rainmeter compiles it with the C# compiler that ships with
-Windows the first time it is needed.
+A small helper (`@Resources\Bin\KerfSensors.cs`) reads the CPU's thermal
+zone and the GPU's D3DKMT performance data, the same numbers Task Manager
+shows. Rainmeter compiles it with the C# compiler that ships with Windows.
 
 ## Licence
 
