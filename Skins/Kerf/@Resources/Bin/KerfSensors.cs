@@ -140,46 +140,51 @@ static class Program
             var adapters = GetAdapters();
             DateTime refreshed = DateTime.UtcNow;
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Sensors");
+            DateTime lastTemps = DateTime.MinValue;
 
             while (true)
             {
-                if ((DateTime.UtcNow - refreshed).TotalSeconds > 60)
+                if ((DateTime.UtcNow - lastTemps).TotalSeconds >= 10)
                 {
-                    Kmt.Close(adapters.Select(a => a.Handle));
-                    adapters = GetAdapters();
-                    refreshed = DateTime.UtcNow;
-                }
+                    lastTemps = DateTime.UtcNow;
+                    if ((DateTime.UtcNow - refreshed).TotalSeconds > 60)
+                    {
+                        Kmt.Close(adapters.Select(a => a.Handle));
+                        adapters = GetAdapters();
+                        refreshed = DateTime.UtcNow;
+                    }
 
-                double? cpu = ReadCpu();
-                double? gpu = null; string kind = "", name = "";
-                foreach (var a in adapters.OrderBy(a => a.Integrated))
-                {
-                    int t = Kmt.TempDeci(a.Handle);
-                    if (t > 0 && t < 1500) { gpu = t / 10.0; kind = a.Integrated ? "iGPU" : "dGPU"; name = a.Name; break; }
-                }
-                if (gpu == null && cpu != null)
-                {
-                    var ig = adapters.FirstOrDefault(a => a.Integrated);
-                    if (ig != null) { gpu = cpu; kind = "iGPU"; name = ig.Name + " (shares CPU die)"; }
-                }
+                    double? cpu = ReadCpu();
+                    double? gpu = null; string kind = "", name = "";
+                    foreach (var a in adapters.OrderBy(a => a.Integrated))
+                    {
+                        int t = Kmt.TempDeci(a.Handle);
+                        if (t > 0 && t < 1500) { gpu = t / 10.0; kind = a.Integrated ? "iGPU" : "dGPU"; name = a.Name; break; }
+                    }
+                    if (gpu == null && cpu != null)
+                    {
+                        var ig = adapters.FirstOrDefault(a => a.Integrated);
+                        if (ig != null) { gpu = cpu; kind = "iGPU"; name = ig.Name + " (shares CPU die)"; }
+                    }
 
-                if (once)
-                {
-                    var lines = adapters.Select(a => string.Format("{0,-45} integrated={1} temp={2}", a.Name, a.Integrated, Kmt.TempDeci(a.Handle) / 10.0)).ToList();
-                    lines.Add("Thermal zones: " + string.Join(", ", zones.Select(z => z.Key)));
-                    lines.Add(string.Format("CPU={0}  GPU={1} ({2} {3})", F(cpu), F(gpu), kind, name));
-                    File.WriteAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "KerfSensors.log"), lines);
-                    break;
-                }
+                    if (once)
+                    {
+                        var lines = adapters.Select(a => string.Format("{0,-45} integrated={1} temp={2}", a.Name, a.Integrated, Kmt.TempDeci(a.Handle) / 10.0)).ToList();
+                        lines.Add("Thermal zones: " + string.Join(", ", zones.Select(z => z.Key)));
+                        lines.Add(string.Format("CPU={0}  GPU={1} ({2} {3})", F(cpu), F(gpu), kind, name));
+                        File.WriteAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "KerfSensors.log"), lines);
+                        break;
+                    }
 
-                key.SetValue("CPU", F(cpu));
-                key.SetValue("GPU", F(gpu));
-                key.SetValue("GPUKind", kind);
-                key.SetValue("GPUName", name);
-                key.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+                    key.SetValue("CPU", F(cpu));
+                    key.SetValue("GPU", F(gpu));
+                    key.SetValue("GPUKind", kind);
+                    key.SetValue("GPUName", name);
+                    key.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+                }
 
                 if (Process.GetProcessesByName("Rainmeter").Length == 0) break;
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
             }
             Kmt.Close(adapters.Select(a => a.Handle));
             key.Close();

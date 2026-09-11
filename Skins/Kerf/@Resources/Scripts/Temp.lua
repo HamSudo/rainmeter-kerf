@@ -1,3 +1,5 @@
+local STALE = 25
+
 function Initialize()
   kind = SELF:GetOption('Kind', 'CPU')
   raw, tick, gpuKind = SKIN:GetMeasure('mRaw'), SKIN:GetMeasure('mTick'), SKIN:GetMeasure('mGpuKind')
@@ -20,9 +22,9 @@ end
 
 function Update()
   local now = os.time()
-  local fresh = now - (tonumber(tick:GetStringValue()) or 0) <= 8
+  local fresh = now - (tonumber(tick:GetStringValue()) or 0) <= STALE
 
-  if not fresh and now - lastLaunch > 30 then
+  if not fresh and now - lastLaunch > 60 then
     lastLaunch = now
     SKIN:Bang('!CommandMeasure', exists(exe) and 'mLaunch' or 'mBuild', 'Run')
   end
