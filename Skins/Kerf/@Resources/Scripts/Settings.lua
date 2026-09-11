@@ -15,9 +15,13 @@ local DISPLAYS = { 1.00, 1.33, 2.00 }
 local PARTS    = { 'Time', 'Seconds', 'Wave', 'Day', 'Date' }
 local LAYOUT_NAMES = {
   Clock = { [0] = 'Classic', 'Vertical', 'Horizontal' },
+  CPU   = { [0] = 'Horizontal', 'Vertical' },
+  GPU   = { [0] = 'Horizontal', 'Vertical' },
 }
 local LAYOUT_FILES = {
   Clock = { [0] = 'Clock.ini', 'Vertical.ini', 'Horizontal.ini' },
+  CPU   = { [0] = 'CPU.ini', 'Vertical.ini' },
+  GPU   = { [0] = 'GPU.ini', 'Vertical.ini' },
 }
 
 local ON_BG, ON_FG   = '232,236,240,255', '14,17,21,255'
@@ -51,7 +55,7 @@ function Render()
 
   local isClock = target == 'Clock'
   local layout = getn(target .. 'Layout')
-  local names = LAYOUT_NAMES[target] or {}
+  local names = LAYOUT_NAMES[target]
   for i = 0, 2 do
     local meter = 'BtnL' .. i
     if names[i] then
@@ -62,7 +66,7 @@ function Render()
       SKIN:Bang('!HideMeter', meter)
     end
   end
-  SKIN:Bang(names[0] and '!HideMeter' or '!ShowMeter', 'NoteLayout')
+  SKIN:Bang('!HideMeter', 'NoteLayout')
 
   local edges = isClock and layout == 2
   for i = 0, 5 do
@@ -132,7 +136,7 @@ function Align(n)
 end
 
 function Layout(n)
-  local file = (LAYOUT_FILES[target] or {})[n]
+  local file = LAYOUT_FILES[target][n]
   if not file then return end
   put(target .. 'Layout', n, mods)
   if not (target == 'Clock' and n == 2) and getn(target .. 'Align') >= 4 then
