@@ -44,7 +44,7 @@ local FONT_METRICS = {
 }
 local DEFAULT_METRICS = { VCapTop = 0.22, VBase = 0.77, VDotW = 0.08, VDotH = 0.08, VDotGap = 0.2, VDotR = 0.3 }
 local DISPLAYS = { 1.00, 1.33, 2.00 }
-local PARTS    = { 'Time', 'Seconds', 'Wave', 'Day', 'Date' }
+local PARTS    = { 'Time', 'Seconds', 'Pulse', 'Day', 'Date' }
 local LAYOUT_NAMES = {
   Clock = { [0] = 'Classic', 'Vertical', 'Horizontal' },
   CPU   = { [0] = 'Horizontal', 'Vertical' },

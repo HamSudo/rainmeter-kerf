@@ -55,7 +55,21 @@ local function gradient(ink, c, w, a)
 end
 
 function Update()
-  if num('#ShowWave#') == 0 then return 0 end
+
+  if num('#Pulse#') == 0 then
+    if still then return 0 end
+    local L = lengthM and lengthM:GetValue() or 0
+    if L <= 0 then return 0 end
+    still = true
+    straight(L, num('#WaveHeight#') * num('#Scale#') / 2)
+    local none = gradient('0,0,0', 0.5, 0.1, 0)
+    for _, meter in ipairs(meters) do
+      for _, g in ipairs({ 'GradCore', 'GradMid', 'GradGlow' }) do SKIN:Bang('!SetOption', meter, g, none) end
+      SKIN:Bang('!UpdateMeter', meter)
+    end
+    SKIN:Bang('!Redraw')
+    return 0
+  end
 
   local now = os.clock()
   local frames = math.min(6, math.max(0.1, (now - last) * 60))
