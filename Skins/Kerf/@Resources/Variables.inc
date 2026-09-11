@@ -32,8 +32,8 @@ WaveSpeed=0.05
 WaveSpread=1.2
 WaveGain=2
 WaveFollowVolume=1
-WaveEcho1=90
-WaveEcho2=40
+WaveEcho1=0
+WaveEcho2=0
 
 ; Accent
 Accent=242,184,75
