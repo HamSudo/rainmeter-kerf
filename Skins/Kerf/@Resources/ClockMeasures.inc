@@ -30,12 +30,12 @@ UpdateDivider=30
 
 [mDMY]
 Measure=Time
-Format=%d / %m / %Y
+Format=%d / %m
 UpdateDivider=30
 
 [mDMYShort]
 Measure=Time
-Format=%d/%m/%y
+Format=%d/%m
 UpdateDivider=30
 
 [mDayStyle]

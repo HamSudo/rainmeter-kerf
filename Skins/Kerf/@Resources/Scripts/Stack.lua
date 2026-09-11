@@ -30,7 +30,7 @@ end
 
 local function items()
   if mode == 'date' then
-    return { os.date('%y'), false, os.date('%m'), false, os.date('%d') }
+    return { os.date('%d'), false, os.date('%m') }
   end
   local s = ''
   if src ~= '' then
