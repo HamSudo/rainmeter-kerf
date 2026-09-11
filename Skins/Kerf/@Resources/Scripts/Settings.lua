@@ -1,8 +1,20 @@
 local MODULES  = { 'Clock', 'CPU', 'GPU' }
+local ACCENTS  = {
+  { '242,184,75',  '150,114,46' },
+  { '143,179,255', '60,92,170'  },
+  { '111,214,176', '38,122,92'  },
+  { '255,127,106', '170,70,55'  },
+  { '226,230,234', '84,90,96'   },
+}
+
+local FONTS    = { 'Hanken Grotesk', 'JetBrains Mono' }
+
+local FONT_LABELS = {}
+
 local ON_BG, ON_FG   = '232,236,240,255', '14,17,21,255'
 local OFF_BG, OFF_FG = '255,255,255,16', '214,220,226,235'
 
-local mods, target
+local vars, mods, target
 
 local function get(name) return SKIN:GetVariable(name) or '' end
 
@@ -28,11 +40,22 @@ function Render()
   SKIN:Bang('!SetOption', 'ValTrans', 'Text', getn(target .. 'Trans') .. '%')
   for i = 0, 3 do button('BtnH' .. i, getn(target .. 'Hover') == i) end
 
+  local accent = get('Accent'):gsub('%s', '')
+  for i, a in ipairs(ACCENTS) do
+    local on = accent == a[1]
+    SKIN:Bang('!SetOption', 'Sw' .. i, 'Shape', 'Rectangle 1,1,22,22 | Fill Color ' .. a[1] .. ',255 | StrokeWidth 1.5 | Stroke Color 255,255,255,' .. (on and '255' or '0'))
+  end
+  local fi = fontIndex()
+  SKIN:Bang('!SetOption', 'ValFont', 'Text', FONT_LABELS[FONTS[fi]] or FONTS[fi])
+  SKIN:Bang('!SetOption', 'ValFont', 'FontFace', FONTS[fi])
+  SKIN:Bang('!SetOption', 'ValFontCount', 'Text', fi .. ' / ' .. #FONTS)
+
   SKIN:Bang('!UpdateMeter', '*')
   SKIN:Bang('!Redraw')
 end
 
 function Initialize()
+  vars = get('@') .. 'Variables.inc'
   mods = get('@') .. 'Modules.inc'
   target = 'Clock'
   local wx, wy = getn('WORKAREAX'), getn('WORKAREAY')
@@ -58,5 +81,23 @@ end
 
 function Hover(n)
   put(target .. 'Hover', n, mods) refresh(target) Render()
+end
+
+function Accent(i)
+  put('Accent', ACCENTS[i][1], vars)
+  put('AccentOnLight', ACCENTS[i][2], vars)
+  refresh() Render()
+end
+
+function fontIndex()
+  local current = get('FontFace')
+  for i, name in ipairs(FONTS) do if name == current then return i end end
+  return 1
+end
+
+function Font(delta)
+  local i = (fontIndex() - 1 + delta) % #FONTS + 1
+  put('FontFace', FONTS[i], vars)
+  refresh() Render()
 end
 
