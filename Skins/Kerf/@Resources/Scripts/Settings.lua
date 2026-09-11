@@ -93,8 +93,50 @@ local function button(meter, on)
   SKIN:Bang('!SetOption', meter, 'FontColor', on and ON_FG or OFF_FG)
 end
 
+local MODULE_METERS = {
+  'LblSize', 'LblTrans', 'BtnSizeDown', 'ValSize', 'BtnSizeUp', 'BtnTransDown', 'ValTrans', 'BtnTransUp',
+  'LblHover', 'BtnH0', 'BtnH1', 'BtnH2', 'BtnH3', 'LblLayout', 'LblAlign',
+  'BtnA0', 'BtnA1', 'BtnA2', 'BtnA3', 'BtnA4', 'BtnA5', 'BtnA6',
+}
+local OPTIONAL_METERS = {
+  'BtnL0', 'BtnL1', 'BtnL2', 'NoteLayout', 'LblShow', 'BtnSTime', 'BtnSSeconds', 'BtnSPulse', 'BtnSDay', 'BtnSDate', 'BtnSFlip',
+  'LblFormat', 'BtnFmt24', 'BtnFmt12', 'LblWeight', 'BtnWPAll', 'BtnWPTime', 'BtnWPDay', 'BtnWPDate', 'BtnW300', 'BtnW400', 'BtnW700',
+  'LblUnits', 'BtnU0', 'BtnU1', 'LblGpu', 'BtnG0', 'BtnG1', 'BtnG2', 'BtnG3',
+}
+local GENERAL_METERS = {
+  'LblAccent', 'Sw1', 'Sw2', 'Sw3', 'Sw4', 'Sw5', 'Sw6', 'Sw7', 'Sw8', 'Sw9', 'Sw10', 'Sw11', 'Sw12',
+  'LblFont', 'ValFont', 'FontChevron', 'LblInk', 'LblDisplay', 'BtnI0', 'BtnI1', 'BtnI2', 'BtnD0', 'BtnD1', 'BtnD2', 'BtnD3',
+}
+
+local function renderGeneral()
+  local accent = get('Accent'):gsub('%s', '')
+  for i, a in ipairs(ACCENTS) do
+    local on = accent == a[1]
+    SKIN:Bang('!SetOption', 'Sw' .. i, 'Shape', 'Rectangle 1,1,22,22 | Fill Color ' .. a[1] .. ',255 | StrokeWidth 1.5 | Stroke Color ' .. RING .. ',' .. (on and '255' or '0'))
+  end
+  local fi = fontIndex()
+  SKIN:Bang('!SetOption', 'ValFont', 'Text', FONT_LABELS[FONTS[fi]] or FONTS[fi])
+  SKIN:Bang('!SetOption', 'ValFont', 'FontFace', FONTS[fi])
+  for i = 0, 2 do button('BtnI' .. i, getn('InkMode') == i) end
+  for i = 0, #DISPLAYS do button('BtnD' .. i, getn('DisplayMode') == i) end
+end
+
 function Render()
+  local general = target == 'General'
   for _, m in ipairs(MODULES) do button('BtnT' .. m, m == target) end
+  button('BtnTGeneral', general)
+  for _, m in ipairs(GENERAL_METERS) do SKIN:Bang(general and '!ShowMeter' or '!HideMeter', m) end
+  for _, m in ipairs(MODULE_METERS) do SKIN:Bang(general and '!HideMeter' or '!ShowMeter', m) end
+  button('BtnPDark', getn('PanelTheme') ~= 1)
+  button('BtnPLight', getn('PanelTheme') == 1)
+  if general then
+    for _, m in ipairs(OPTIONAL_METERS) do SKIN:Bang('!HideMeter', m) end
+    SKIN:Bang('!SetVariable', 'Shift', -448)
+    renderGeneral()
+    SKIN:Bang('!UpdateMeter', '*')
+    SKIN:Bang('!Redraw')
+    return
+  end
   SKIN:Bang('!SetOption', 'ValSize', 'Text', getn(target .. 'Size') .. '%')
   SKIN:Bang('!SetOption', 'ValTrans', 'Text', getn(target .. 'Trans') .. '%')
   for i = 0, 3 do button('BtnH' .. i, getn(target .. 'Hover') == i) end
@@ -135,19 +177,6 @@ function Render()
   button('BtnFmt24', not twelve)
   button('BtnFmt12', twelve)
 
-  local accent = get('Accent'):gsub('%s', '')
-  for i, a in ipairs(ACCENTS) do
-    local on = accent == a[1]
-    SKIN:Bang('!SetOption', 'Sw' .. i, 'Shape', 'Rectangle 1,1,22,22 | Fill Color ' .. a[1] .. ',255 | StrokeWidth 1.5 | Stroke Color ' .. RING .. ',' .. (on and '255' or '0'))
-  end
-  local fi = fontIndex()
-  SKIN:Bang('!SetOption', 'ValFont', 'Text', FONT_LABELS[FONTS[fi]] or FONTS[fi])
-  SKIN:Bang('!SetOption', 'ValFont', 'FontFace', FONTS[fi])
-  for i = 0, 2 do button('BtnI' .. i, getn('InkMode') == i) end
-  for i = 0, #DISPLAYS do button('BtnD' .. i, getn('DisplayMode') == i) end
-  button('BtnPDark', getn('PanelTheme') ~= 1)
-  button('BtnPLight', getn('PanelTheme') == 1)
-
   SKIN:Bang('!UpdateMeter', '*')
   SKIN:Bang('!Redraw')
 end
@@ -155,20 +184,22 @@ end
 function Initialize()
   vars = get('@') .. 'Variables.inc'
   mods = get('@') .. 'Modules.inc'
-  target = 'Clock'
+  target = 'General'
   ON_BG, ON_FG = themed('POnBg', '232,236,240,255'), themed('POnFg', '14,17,21,255')
   OFF_BG, OFF_FG = themed('PBtnBg', '255,255,255,16'), themed('PBtnFg', '214,220,226,235')
   RING = themed('PRing', '255,255,255')
   local panel = get('CURRENTPATH') .. get('CURRENTFILE')
-  if get('PanelKeep') == '1' then
+  local keep = get('PanelKeep') == '1'
+  if keep then
     target = get('PanelTab') ~= '' and get('PanelTab') or 'Clock'
     SKIN:Bang('!WriteKeyValue', 'Variables', 'PanelKeep', '0', panel)
-  else
-    local wx, wy = getn('WORKAREAX'), getn('WORKAREAY')
-    local ww, wh = getn('WORKAREAWIDTH'), getn('WORKAREAHEIGHT')
-    SKIN:Bang('!Move', math.floor(wx + (ww - getn('W')) / 2), math.floor(wy + (wh - getn('H')) / 2))
   end
   Render()
+  if not keep then
+    local wx, wy = getn('WORKAREAX'), getn('WORKAREAY')
+    local ww, wh = getn('WORKAREAWIDTH'), getn('WORKAREAHEIGHT')
+    SKIN:Bang('!Move', math.floor(wx + (ww - getn('W')) / 2), math.floor(wy + (wh - getn('H') - getn('Shift')) / 2))
+  end
 end
 
 function Target(m)
@@ -316,7 +347,7 @@ function renderTemp(isClock, layout)
     SKIN:Bang('!SetOption', 'BtnG0', 'Y', y + 72)
     rows = (layout ~= 2 and 1 or 0) + 1 + (pick and 1 or 0)
   end
-  SKIN:Bang('!SetVariable', 'Shift', (rows - 3) * 56)
+  SKIN:Bang('!SetVariable', 'Shift', (rows - 3) * 56 - 216)
   for i = 0, 3 do
     local visible = pick
     SKIN:Bang(visible and '!ShowMeter' or '!HideMeter', 'BtnG' .. i)

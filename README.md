@@ -5,13 +5,15 @@ temperatures read straight from Windows -- no HWiNFO, no extra software.
 
 ## Install
 
-Download `Kerf-0.6.0.rmskin` from the release and double-click it.
+Download `Kerf-0.7.0.rmskin` from the release and double-click it.
 
 ## Modules
 
 - **Clock** -- time, seconds, a music waveform that follows what is playing,
   the day and the date.
-- **CPU** and **GPU** -- temperature with a small scale underneath.
+- **CPU** and **GPU** -- temperature in Celsius or Fahrenheit, with a small
+  scale underneath. Machines with two GPUs can show the integrated one, the
+  dedicated one, or both side by side.
 
 ## Alignment
 
