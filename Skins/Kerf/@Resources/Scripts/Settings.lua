@@ -110,7 +110,10 @@ function Render()
     SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', 'BtnS' .. part)
     if isClock then button('BtnS' .. part, getn('ClockShow' .. part) == 1) end
   end
-  SKIN:Bang(isClock and '!HideMeter' or '!ShowMeter', 'NoteShow')
+  local flips = not isClock
+  SKIN:Bang(flips and '!ShowMeter' or '!HideMeter', 'BtnSFlip')
+  SKIN:Bang((isClock or flips) and '!ShowMeter' or '!HideMeter', 'LblShow')
+  if flips then button('BtnSFlip', getn(target .. 'Flip') == 1) end
   local twelve = get('HourFormat') == '%I'
   for _, m in ipairs({ 'LblFormat', 'BtnFmt24', 'BtnFmt12' }) do SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', m) end
   button('BtnFmt24', not twelve)
@@ -215,6 +218,11 @@ end
 function Toggle(part)
   local key = 'ClockShow' .. part
   put(key, 1 - getn(key), mods) refresh('Clock') Render()
+end
+
+function Flip()
+  local key = target .. 'Flip'
+  put(key, 1 - getn(key), mods) refresh(target) Render()
 end
 
 function Accent(i)

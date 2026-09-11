@@ -70,9 +70,9 @@ Y=([MeterVal:Y] + [MeterVal:H] - 2*#Scale#)
 [MeterRuler]
 Meter=Shape
 DynamicVariables=1
-X=0
+X=(#Flip# * ([MeterValRef:W] + 5*#Scale#))
 Y=0
-Shape=Rectangle (4*#Scale#),0,(1*#Scale#),(#RH#) | Fill Color #Ink#,(56*#FadeK#) | StrokeWidth 0
+Shape=Rectangle (4*#Scale#*(1 - #Flip#)),0,(1*#Scale#),(#RH#) | Fill Color #Ink#,(56*#FadeK#) | StrokeWidth 0
 Shape2=Rectangle (1*#Scale#),(0*(#RH# - #Scale#)/8),(3*#Scale#),(1*#Scale#) | Fill Color #Ink#,(97*#FadeK#) | StrokeWidth 0
 Shape3=Rectangle (1*#Scale#),(1*(#RH# - #Scale#)/8),(3*#Scale#),(1*#Scale#) | Fill Color #Ink#,(97*#FadeK#) | StrokeWidth 0
 Shape4=Rectangle (1*#Scale#),(2*(#RH# - #Scale#)/8),(3*#Scale#),(1*#Scale#) | Fill Color #Ink#,(97*#FadeK#) | StrokeWidth 0

@@ -2,7 +2,7 @@
 Meter=Image
 MeterStyle=sHitBox
 W=#RowW#
-H=([MeterRuler:Y] + 6*#Scale#)
+H=((#Flip# = 1) ? ([MeterVal:Y] + [MeterVal:H] + #Scale#) : ([MeterRuler:Y] + 6*#Scale#))
 
 [MeterLblRef]
 Meter=String
@@ -41,7 +41,7 @@ InlinePattern2=°C
 InlineSetting3=Color | #Ink#,(130*#FadeK#)
 InlinePattern3=°C
 X=((#AF# = 1) ? ([MeterValRef:W] - [MeterVal:W]) : (#RowW# - [MeterVal:W]))
-Y=0
+Y=(#Flip# * 8*#Scale#)
 
 [MeterLbl]
 Meter=String
@@ -55,8 +55,8 @@ Y=([MeterVal:Y] + [MeterVal:H] - [MeterLbl:H] - 3*#Scale#)
 Meter=Shape
 DynamicVariables=1
 X=0
-Y=([MeterVal:Y] + [MeterVal:H] + 3*#Scale#)
-Shape=Rectangle 0,(4*#Scale#),(#RowW#),(1*#Scale#) | Fill Color #Ink#,(56*#FadeK#) | StrokeWidth 0
+Y=((#Flip# = 1) ? 0 : ([MeterVal:Y] + [MeterVal:H] + 3*#Scale#))
+Shape=Rectangle 0,(4*#Scale#*(1 - #Flip#)),(#RowW#),(1*#Scale#) | Fill Color #Ink#,(56*#FadeK#) | StrokeWidth 0
 Shape2=Rectangle (0*(#RowW# - #Scale#)/8),(1*#Scale#),(1*#Scale#),(3*#Scale#) | Fill Color #Ink#,(97*#FadeK#) | StrokeWidth 0
 Shape3=Rectangle (1*(#RowW# - #Scale#)/8),(1*#Scale#),(1*#Scale#),(3*#Scale#) | Fill Color #Ink#,(97*#FadeK#) | StrokeWidth 0
 Shape4=Rectangle (2*(#RowW# - #Scale#)/8),(1*#Scale#),(1*#Scale#),(3*#Scale#) | Fill Color #Ink#,(97*#FadeK#) | StrokeWidth 0

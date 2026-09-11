@@ -24,4 +24,6 @@ ClockShowDay=1
 ClockShowDate=1
 ClockLayout=0
 CPULayout=0
+CPUFlip=0
 GPULayout=0
+GPUFlip=0
