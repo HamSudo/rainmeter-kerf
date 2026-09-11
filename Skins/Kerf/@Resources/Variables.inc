@@ -23,7 +23,10 @@ EdgeMargin=48
 TimeFormat=%H:%M
 HourFormat=%H
 
-; Music line
+; Music line: glow, pulse or wave
+WaveStyle=glow
+WavePulseSpeed=0.6
+WaveLine=110
 WaveHeight=30
 WaveAmp=0.9
 WaveStroke=1.5
