@@ -1,4 +1,4 @@
-local function num(v) return tonumber(SKIN:GetVariable(v)) or 0 end
+local function num(v) return tonumber(SKIN:ParseFormula(SKIN:ReplaceVariables('#' .. v .. '#'))) or 0 end
 
 function Snap(mode)
   SKIN:Bang('!WriteKeyValue', 'Variables', 'AlignMode', mode)

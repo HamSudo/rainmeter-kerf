@@ -1,4 +1,4 @@
-; Kerf settings. Edit, then right-click a module > Refresh all Kerf modules.
+; Kerf settings. Most are set from Customize Kerf; refresh Kerf after editing.
 [Variables]
 
 ; Fonts
@@ -13,8 +13,8 @@ DayWeight=400
 TimeTracking=-2
 MicroTracking=2
 
-; Scale: 1.00 at 1080p, 1.33 at 1440p, 2.00 at 4K
-Scale=1.00
+; Display scale: 1.00 at 1080p, 1.33 at 1440p, 2.00 at 4K
+BaseScale=1.00
 
 ; Alignment margin (px)
 EdgeMargin=48
