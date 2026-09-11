@@ -20,6 +20,14 @@ function Initialize()
   set(rest, false)
 end
 
+function Update()
+  if not applied then
+    applied = true
+    set(cur, true)
+  end
+  return cur
+end
+
 local function fadeTo(k)
   from, to, step = cur, k, 0
   SKIN:Bang('!CommandMeasure', 'mFader', 'Stop 1')
