@@ -47,13 +47,13 @@ local DISPLAYS = { 1.00, 1.33, 2.00 }
 local PARTS    = { 'Time', 'Seconds', 'Pulse', 'Day', 'Date' }
 local LAYOUT_NAMES = {
   Clock = { [0] = 'Classic', 'Vertical', 'Horizontal' },
-  CPU   = { [0] = 'Horizontal', 'Vertical' },
-  GPU   = { [0] = 'Horizontal', 'Vertical' },
+  CPU   = { [0] = 'Horizontal', 'Vertical', 'Gauge' },
+  GPU   = { [0] = 'Horizontal', 'Vertical', 'Gauge' },
 }
 local LAYOUT_FILES = {
   Clock = { [0] = 'Clock.ini', 'Vertical.ini', 'Horizontal.ini' },
-  CPU   = { [0] = 'CPU.ini', 'Vertical.ini' },
-  GPU   = { [0] = 'GPU.ini', 'Vertical.ini' },
+  CPU   = { [0] = 'CPU.ini', 'Vertical.ini', 'Gauge.ini' },
+  GPU   = { [0] = 'GPU.ini', 'Vertical.ini', 'Gauge.ini' },
 }
 
 local vars, mods, target
@@ -109,7 +109,7 @@ function Render()
     SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', 'BtnS' .. part)
     if isClock then button('BtnS' .. part, getn('ClockShow' .. part) == 1) end
   end
-  local flips = not isClock
+  local flips = not isClock and layout ~= 2
   SKIN:Bang(flips and '!ShowMeter' or '!HideMeter', 'BtnSFlip')
   SKIN:Bang((isClock or flips) and '!ShowMeter' or '!HideMeter', 'LblShow')
   if flips then button('BtnSFlip', getn(target .. 'Flip') == 1) end
