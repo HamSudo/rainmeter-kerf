@@ -114,7 +114,7 @@ function Render()
   SKIN:Bang('!HideMeter', 'NoteLayout')
 
   button('BtnA0', getn(target .. 'Align') == 0)
-  for i = 1, 5 do
+  for i = 1, 6 do
     SKIN:Bang('!ShowMeter', 'BtnA' .. i)
     button('BtnA' .. i, false)
   end

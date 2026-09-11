@@ -1,6 +1,6 @@
 ; Per-module settings, written by Customize Kerf.
 ; Hover 0 none, 1 fade in, 2 fade out, 3 hide. Align 0 follow, 1 locked.
-; SnapX 1 left, 2 centre, 3 right. SnapY 4 top, 5 bottom.
+; SnapX 1 left, 2 centre, 3 right. SnapY 4 top, 5 bottom, 6 middle.
 ; ClockLayout 0 classic, 1 vertical, 2 horizontal. CPU/GPULayout 0 horizontal, 1 vertical, 2 gauge.
 [Variables]
 ClockSize=100

@@ -37,7 +37,8 @@ local function pin()
   elseif sx == 2 then x = wx + (ww - (l + r)) / 2
   elseif sx == 3 then x = wx + ww - m - r end
   if sy == 4 then y = wy + m - t
-  elseif sy == 5 then y = wy + wh - m - b end
+  elseif sy == 5 then y = wy + wh - m - b
+  elseif sy == 6 then y = wy + (wh - (t + b)) / 2 end
   x, y = math.floor(x + 0.5), math.floor(y + 0.5)
   if math.abs(x - cx) >= 1 or math.abs(y - cy) >= 1 then SKIN:Bang('!Move', x, y) end
 end
