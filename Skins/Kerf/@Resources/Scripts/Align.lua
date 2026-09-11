@@ -77,11 +77,22 @@ function Initialize()
   setLock(locked())
 end
 
+local function share()
+  local l, t, r, b = ink()
+  local w, h = num('CURRENTCONFIGWIDTH'), num('CURRENTCONFIGHEIGHT')
+  if r - l <= 0 or b - t <= 0 or w <= 0 or h <= 0 then return end
+  local spec = string.format('%d %d %d %d %d %d', math.floor(l), math.floor(t), math.ceil(r), math.ceil(b), w, h)
+  if spec == lastSpec then return end
+  local f = io.open((os.getenv('TEMP') or '.') .. '\\Kerf-' .. module .. '.ink', 'w')
+  if f then f:write(spec) f:close() lastSpec = spec end
+end
+
 function Update()
   local now = os.clock()
   if now - lastCheck < 0.5 then return 0 end
   lastCheck = now
   pin()
+  share()
   if var('DisplayMode') ~= 0 then return 0 end
   local h = screenHeight()
   if not h or h <= 0 then return 0 end

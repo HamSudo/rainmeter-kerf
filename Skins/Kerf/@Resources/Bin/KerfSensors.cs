@@ -146,9 +146,34 @@ static class Backdrop
 
     static double Lin(int v) { double c = v / 255.0; return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4); }
 
-    public static double? Luminance(RECT r)
+    public static string InkArea(string module)
     {
-        int m = 12;
+        try { return File.ReadAllText(Path.Combine(Path.GetTempPath(), "Kerf-" + module + ".ink")).Trim(); }
+        catch { return ""; }
+    }
+
+    public static RECT Area(RECT r, string spec, out bool exact)
+    {
+        exact = false;
+        var p = spec.Split(' ');
+        var v = new double[6];
+        if (p.Length != 6) return r;
+        for (int i = 0; i < 6; i++)
+            if (!double.TryParse(p[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v[i])) return r;
+        if (v[4] <= 0 || v[5] <= 0 || v[2] <= v[0] || v[3] <= v[1]) return r;
+        double sx = (r.R - r.L) / v[4], sy = (r.B - r.T) / v[5];
+        exact = true;
+        return new RECT
+        {
+            L = r.L + (int)Math.Floor(v[0] * sx) - 3,
+            T = r.T + (int)Math.Floor(v[1] * sy) - 3,
+            R = r.L + (int)Math.Ceiling(v[2] * sx) + 3,
+            B = r.T + (int)Math.Ceiling(v[3] * sy) + 3
+        };
+    }
+
+    public static double? Luminance(RECT r, int m)
+    {
         int vx = GetSystemMetrics(76), vy = GetSystemMetrics(77), vw = GetSystemMetrics(78), vh = GetSystemMetrics(79);
         int x0 = Math.Max(vx, r.L - m), y0 = Math.Max(vy, r.T - m);
         int x1 = Math.Min(vx + vw, r.R + m), y1 = Math.Min(vy + vh, r.B + m);
@@ -267,7 +292,8 @@ static class Program
                 if (visible)
                 {
 
-                    string layout = string.Join(";", mods.OrderBy(m => m.Key).Select(m => m.Key + ":" + m.Value.L + "," + m.Value.T + "," + m.Value.R + "," + m.Value.B));
+                    var areas = mods.Keys.ToDictionary(k => k, k => Backdrop.InkArea(k));
+                    string layout = string.Join(";", mods.OrderBy(m => m.Key).Select(m => m.Key + ":" + m.Value.L + "," + m.Value.T + "," + m.Value.R + "," + m.Value.B + "|" + areas[m.Key]));
                     string wall = Backdrop.WallpaperSignature();
                     double recheck = 10;
                     double.TryParse(Convert.ToString(ink.GetValue("InkRecheckMinutes", "10")), System.Globalization.NumberStyles.Float, inv, out recheck);
@@ -280,7 +306,9 @@ static class Program
                             if (r > 0) Thread.Sleep(1500);
                             foreach (var mod in mods)
                             {
-                                double? lum = Backdrop.Luminance(mod.Value);
+                                bool exact;
+                                var area = Backdrop.Area(mod.Value, areas[mod.Key], out exact);
+                                double? lum = Backdrop.Luminance(area, exact ? 0 : 12);
                                 if (!lum.HasValue) continue;
                                 if (!readings.ContainsKey(mod.Key)) readings[mod.Key] = new List<double>();
                                 readings[mod.Key].Add(lum.Value);
