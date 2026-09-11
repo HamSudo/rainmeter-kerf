@@ -306,9 +306,8 @@ function renderTemp(isClock, layout)
   end
   local pick = target == 'GPU' and hasGpu('i') and hasGpu('d')
   local show = getn('GPUShow')
-  if show == 3 and layout ~= 2 then show = 0 end
   for i = 0, 3 do
-    local visible = pick and (i < 3 or layout == 2)
+    local visible = pick
     SKIN:Bang(visible and '!ShowMeter' or '!HideMeter', 'BtnG' .. i)
     if visible then button('BtnG' .. i, show == i) end
   end
