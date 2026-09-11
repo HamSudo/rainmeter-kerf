@@ -29,9 +29,6 @@ function Initialize()
 end
 
 local function items()
-  if mode == 'date' then
-    return { os.date('%d'), false, os.date('%m') }
-  end
   local s = ''
   if src ~= '' then
     local m = SKIN:GetMeasure(src)
@@ -40,7 +37,9 @@ local function items()
     s = SKIN:GetVariable(srcVar) or ''
   end
   if upper then s = s:upper() end
-  return chars(s)
+  local list = chars(s)
+  if mode == 'date' then table.insert(list, 1, os.date('%d')) end
+  return list
 end
 
 function Update()
