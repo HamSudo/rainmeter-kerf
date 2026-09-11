@@ -1,8 +1,8 @@
 [mTick]
 Measure=Registry
 RegHKey=HKEY_CURRENT_USER
-RegKey=Software\Kerf\Sensors
-RegValue=Tick
+RegKey=Software\Kerf\Ink
+RegValue=Alive
 
 [mRaw]
 Measure=Registry

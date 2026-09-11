@@ -52,6 +52,7 @@ UpdateDivider=-1
 
 [mAudio]
 Measure=Plugin
+Group=Live
 Plugin=AudioLevel
 Port=Output
 RMSAttack=40
@@ -68,6 +69,7 @@ Sensitivity=35
 
 [mLevel]
 Measure=Plugin
+Group=Live
 Plugin=AudioLevel
 Parent=mAudio
 Type=RMS
@@ -75,11 +77,13 @@ Channel=Avg
 
 [mVolume]
 Measure=Plugin
+Group=Live
 Plugin=Win7AudioPlugin
 UpdateDivider=15
 
 [mBass0]
 Measure=Plugin
+Group=Live
 Plugin=AudioLevel
 Parent=mAudio
 Type=Band
@@ -87,6 +91,7 @@ BandIdx=0
 
 [mBass1]
 Measure=Plugin
+Group=Live
 Plugin=AudioLevel
 Parent=mAudio
 Type=Band

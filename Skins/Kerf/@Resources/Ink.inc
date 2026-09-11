@@ -90,6 +90,16 @@ RegKey=Software\Kerf\Ink
 RegValue=Alive
 UpdateDivider=#InkDivider#
 
+[mVisible]
+Measure=Registry
+RegHKey=HKEY_CURRENT_USER
+RegKey=Software\Kerf\Ink
+RegValue=Visible
+UpdateDivider=#InkDivider#
+IfMatch=^0$
+IfMatchAction=[!PauseMeasureGroup Live]
+IfNotMatchAction=[!UnpauseMeasureGroup Live]
+
 [mInkScript]
 Measure=Script
 ScriptFile=#@#Scripts\Ink.lua

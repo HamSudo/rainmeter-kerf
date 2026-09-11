@@ -118,6 +118,18 @@ static class Backdrop
         return c == "Progman" || c == "WorkerW" || c == "RainmeterMeterWindow";
     }
 
+    public static bool Visible(RECT r)
+    {
+        int seen = 0, total = 0;
+        for (int gy = 1; gy <= 3; gy++)
+            for (int gx = 1; gx <= 3; gx++)
+            {
+                total++;
+                if (Desktop(r.L + (r.R - r.L) * gx / 4, r.T + (r.B - r.T) * gy / 4)) seen++;
+            }
+        return seen * 2 > total;
+    }
+
     public static string WallpaperSignature()
     {
         string s = "";
@@ -239,6 +251,7 @@ static class Program
             double? lastCpu = null, lastGpu = null; string lastKind = "", lastName = "";
             string lastLayout = null, lastWall = null;
             DateTime lastSample = DateTime.MinValue, lastTemps = DateTime.MinValue;
+            bool wasVisible = false;
             var inv = System.Globalization.CultureInfo.InvariantCulture;
 
             while (true)
@@ -246,75 +259,83 @@ static class Program
                 string now = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
                 var mods = Backdrop.Modules();
 
+                bool visible = once || mods.Values.Any(Backdrop.Visible);
+                bool shown = visible && !wasVisible;
+                wasVisible = visible;
+                ink.SetValue("Visible", visible ? "1" : "0");
                 ink.SetValue("Alive", now);
 
-                string layout = string.Join(";", mods.OrderBy(m => m.Key).Select(m => m.Key + ":" + m.Value.L + "," + m.Value.T + "," + m.Value.R + "," + m.Value.B));
-                string wall = Backdrop.WallpaperSignature();
-                double recheck = 10;
-                double.TryParse(Convert.ToString(ink.GetValue("InkRecheckMinutes", "10")), System.Globalization.NumberStyles.Float, inv, out recheck);
-                bool due = recheck > 0 && (DateTime.UtcNow - lastSample).TotalMinutes >= recheck;
-                if (mods.Count > 0 && (layout != lastLayout || wall != lastWall || due))
+                if (visible)
                 {
-                    var readings = new Dictionary<string, List<double>>();
-                    for (int r = 0; r < 3; r++)
+
+                    string layout = string.Join(";", mods.OrderBy(m => m.Key).Select(m => m.Key + ":" + m.Value.L + "," + m.Value.T + "," + m.Value.R + "," + m.Value.B));
+                    string wall = Backdrop.WallpaperSignature();
+                    double recheck = 10;
+                    double.TryParse(Convert.ToString(ink.GetValue("InkRecheckMinutes", "10")), System.Globalization.NumberStyles.Float, inv, out recheck);
+                    bool due = recheck > 0 && (DateTime.UtcNow - lastSample).TotalMinutes >= recheck;
+                    if (mods.Count > 0 && (shown || layout != lastLayout || wall != lastWall || due))
                     {
-                        if (r > 0) Thread.Sleep(1500);
-                        foreach (var mod in mods)
+                        var readings = new Dictionary<string, List<double>>();
+                        for (int r = 0; r < 3; r++)
                         {
-                            double? lum = Backdrop.Luminance(mod.Value);
-                            if (!lum.HasValue) continue;
-                            if (!readings.ContainsKey(mod.Key)) readings[mod.Key] = new List<double>();
-                            readings[mod.Key].Add(lum.Value);
+                            if (r > 0) Thread.Sleep(1500);
+                            foreach (var mod in mods)
+                            {
+                                double? lum = Backdrop.Luminance(mod.Value);
+                                if (!lum.HasValue) continue;
+                                if (!readings.ContainsKey(mod.Key)) readings[mod.Key] = new List<double>();
+                                readings[mod.Key].Add(lum.Value);
+                            }
                         }
-                    }
-                    foreach (var rd in readings)
-                    {
-                        rd.Value.Sort();
-                        ink.SetValue(rd.Key, rd.Value[rd.Value.Count / 2].ToString("0.000", inv));
-                    }
-                    if (readings.Count > 0) ink.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
-                    lastLayout = layout; lastWall = wall; lastSample = DateTime.UtcNow;
-                }
-
-                if ((DateTime.UtcNow - lastTemps).TotalSeconds >= 10)
-                {
-                    lastTemps = DateTime.UtcNow;
-                    if ((DateTime.UtcNow - refreshed).TotalSeconds > 60)
-                    {
-                        Kmt.Close(adapters.Select(a => a.Handle));
-                        adapters = GetAdapters();
-                        refreshed = DateTime.UtcNow;
+                        foreach (var rd in readings)
+                        {
+                            rd.Value.Sort();
+                            ink.SetValue(rd.Key, rd.Value[rd.Value.Count / 2].ToString("0.000", inv));
+                        }
+                        if (readings.Count > 0) ink.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+                        lastLayout = layout; lastWall = wall; lastSample = DateTime.UtcNow;
                     }
 
-                    double? cpu = ReadCpu();
-                    double? gpu = null; string kind = "", name = "";
-                    foreach (var a in adapters.OrderBy(a => a.Integrated))
+                    if (shown || (DateTime.UtcNow - lastTemps).TotalSeconds >= 10)
                     {
-                        int t = Kmt.TempDeci(a.Handle);
-                        if (t > 0 && t < 1500) { gpu = t / 10.0; kind = a.Integrated ? "iGPU" : "dGPU"; name = a.Name; break; }
-                    }
-                    if (gpu == null && cpu != null)
-                    {
-                        var ig = adapters.FirstOrDefault(a => a.Integrated);
-                        if (ig != null) { gpu = cpu; kind = "iGPU"; name = ig.Name + " (shares CPU die)"; }
-                    }
+                        lastTemps = DateTime.UtcNow;
+                        if ((DateTime.UtcNow - refreshed).TotalSeconds > 60)
+                        {
+                            Kmt.Close(adapters.Select(a => a.Handle));
+                            adapters = GetAdapters();
+                            refreshed = DateTime.UtcNow;
+                        }
 
-                    if (once)
-                    {
-                        var lines = adapters.Select(a => string.Format("{0,-45} integrated={1} temp={2}", a.Name, a.Integrated, Kmt.TempDeci(a.Handle) / 10.0)).ToList();
-                        lines.Add("Thermal zones: " + string.Join(", ", zones.Select(z => z.Key)));
-                        lines.Add(string.Format("CPU={0}  GPU={1} ({2} {3})", F(cpu), F(gpu), kind, name));
-                        File.WriteAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "KerfSensors.log"), lines);
-                        break;
-                    }
+                        double? cpu = ReadCpu();
+                        double? gpu = null; string kind = "", name = "";
+                        foreach (var a in adapters.OrderBy(a => a.Integrated))
+                        {
+                            int t = Kmt.TempDeci(a.Handle);
+                            if (t > 0 && t < 1500) { gpu = t / 10.0; kind = a.Integrated ? "iGPU" : "dGPU"; name = a.Name; break; }
+                        }
+                        if (gpu == null && cpu != null)
+                        {
+                            var ig = adapters.FirstOrDefault(a => a.Integrated);
+                            if (ig != null) { gpu = cpu; kind = "iGPU"; name = ig.Name + " (shares CPU die)"; }
+                        }
 
-                    if (cpu.HasValue) lastCpu = cpu;
-                    if (gpu.HasValue) { lastGpu = gpu; lastKind = kind; lastName = name; }
-                    key.SetValue("CPU", F(lastCpu));
-                    key.SetValue("GPU", F(lastGpu));
-                    key.SetValue("GPUKind", lastKind);
-                    key.SetValue("GPUName", lastName);
-                    key.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+                        if (once)
+                        {
+                            var lines = adapters.Select(a => string.Format("{0,-45} integrated={1} temp={2}", a.Name, a.Integrated, Kmt.TempDeci(a.Handle) / 10.0)).ToList();
+                            lines.Add("Thermal zones: " + string.Join(", ", zones.Select(z => z.Key)));
+                            lines.Add(string.Format("CPU={0}  GPU={1} ({2} {3})", F(cpu), F(gpu), kind, name));
+                            File.WriteAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "KerfSensors.log"), lines);
+                            break;
+                        }
+
+                        if (cpu.HasValue) lastCpu = cpu;
+                        if (gpu.HasValue) { lastGpu = gpu; lastKind = kind; lastName = name; }
+                        key.SetValue("CPU", F(lastCpu));
+                        key.SetValue("GPU", F(lastGpu));
+                        key.SetValue("GPUKind", lastKind);
+                        key.SetValue("GPUName", lastName);
+                        key.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+                    }
                 }
 
                 if (Process.GetProcessesByName("Rainmeter").Length == 0) break;
