@@ -7,9 +7,10 @@ end
 
 local function m(name) return SKIN:GetMeasure(name) end
 
-local CONFIRM = 1
 local MARGIN = 0.03
-hist, lastTick, decided = {}, nil, nil
+local TAU = 8
+local DWELL = 10
+lastTick, decided, ema, emaAt, flippedAt = nil, nil, nil, nil, -100
 
 function Initialize()
   avg, we64, we32 = m('mAvgColor'), m('mWE64'), m('mWE32')
@@ -126,21 +127,23 @@ function Update()
     local tick = screenTick:GetStringValue()
     if tick ~= lastTick then
       lastTick = tick
-      hist[#hist + 1] = screen
-      if #hist > CONFIRM then table.remove(hist, 1) end
       local th = tonumber(SKIN:GetVariable('InkThreshold', '0.3')) or 0.3
+      local dt = emaAt and (now - emaAt) or nil
+      if ema == nil or not dt or dt >= 4 * TAU then
+        ema = screen
+      else
+        ema = ema + (screen - ema) * (1 - math.exp(-dt / TAU))
+      end
+      emaAt = now
       if decided == nil then
-        decided = screen
-      elseif #hist >= CONFIRM then
-        local dark, light = true, true
-        for _, v in ipairs(hist) do
-          if v <= th + MARGIN then dark = false end
-          if v >= th - MARGIN then light = false end
-        end
-        if (dark and decided <= th) or (light and decided > th) then
-          local sorted = { table.unpack and table.unpack(hist) or unpack(hist) }
-          table.sort(sorted)
-          decided = sorted[math.ceil(#sorted / 2)]
+        decided = ema
+        flippedAt = now
+      elseif now - flippedAt >= DWELL then
+        local wantsDark = ema > th + MARGIN
+        local wantsLight = ema < th - MARGIN
+        if (wantsDark and decided <= th) or (wantsLight and decided > th) then
+          decided = ema
+          flippedAt = now
         end
       end
     end

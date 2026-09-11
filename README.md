@@ -42,9 +42,19 @@ those from Rainmeter's menu, Kerf adopts the values and resets them.
 
 Kerf reads what is behind each module -- a Wallpaper Engine wallpaper, a solid
 colour or a Windows wallpaper -- and picks light or dark ink by contrast,
-adding a shadow only where it is needed. It samples when the wallpaper
-changes and pauses while the desktop is hidden. You can also fix the ink to
-light or dark in the panel.
+adding a shadow only where it is needed. You can also fix the ink to light or
+dark in the panel.
+
+A still wallpaper is read when it changes, and never again until it does. A
+wallpaper that moves by itself -- a video or a Wallpaper Engine scene -- is
+noticed on its own and then followed every couple of seconds, smoothed over
+about ten seconds so a passing bright frame cannot flip the ink, and with at
+least ten seconds between flips. Either way nothing is read at all while the
+desktop is covered.
+
+Three optional values under `HKCU\Software\Kerf\Ink` tune it:
+`InkLiveMode` (`auto`, `on`, `off`), `InkLiveSeconds` (default 2) and
+`InkRecheckMinutes` (default 10, for still wallpapers).
 
 ## Music line
 

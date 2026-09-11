@@ -187,14 +187,24 @@ static class Backdrop
             using (var g = System.Drawing.Graphics.FromImage(bmp))
             {
                 g.CopyFromScreen(x0, y0, 0, 0, new System.Drawing.Size(w, h));
+                int cols = 20, rows = 12, cw = 5, ch = 4;
+                var open = new bool[cw, ch];
+                int clear = 0;
+                for (int cy = 0; cy < ch; cy++)
+                    for (int cx = 0; cx < cw; cx++)
+                    {
+                        open[cx, cy] = Desktop(x0 + (int)((cx + 0.5) * w / cw), y0 + (int)((cy + 0.5) * h / ch));
+                        if (open[cx, cy]) clear++;
+                    }
+                if (clear * 2 < cw * ch) return null;
                 var vals = new List<double>();
-                int total = 0, cols = 20, rows = 12;
+                int total = 0;
                 for (int gy = 0; gy < rows; gy++)
                     for (int gx = 0; gx < cols; gx++)
                     {
-                        int px = (int)((gx + 0.5) * w / cols), py = (int)((gy + 0.5) * h / rows);
                         total++;
-                        if (!Desktop(x0 + px, y0 + py)) continue;
+                        if (!open[gx * cw / cols, gy * ch / rows]) continue;
+                        int px = (int)((gx + 0.5) * w / cols), py = (int)((gy + 0.5) * h / rows);
                         var c = bmp.GetPixel(px, py);
                         vals.Add(0.2126 * Lin(c.R) + 0.7152 * Lin(c.G) + 0.0722 * Lin(c.B));
                     }
@@ -280,13 +290,19 @@ static class Program
             double? lastCpu = null, lastGpu = null, lastIgpu = null, lastDgpu = null; string lastKind = "", lastName = "";
             string lastLayout = null, lastWall = null;
             DateTime lastSample = DateTime.MinValue, lastTemps = DateTime.MinValue;
+            DateTime liveUntil = DateTime.MinValue, lastWatch = DateTime.MinValue, lastLook = DateTime.MinValue;
+            var lastEff = new Dictionary<string, double>();
             bool wasVisible = false;
             var inv = System.Globalization.CultureInfo.InvariantCulture;
 
             while (true)
             {
                 string now = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-                var mods = Backdrop.Modules();
+                // while the desktop is covered there is nothing to read, so even the
+                // "is it covered?" question is asked half as often
+                bool look = wasVisible || (DateTime.UtcNow - lastLook).TotalSeconds >= 2;
+                var mods = look ? Backdrop.Modules() : new Dictionary<string, Backdrop.RECT>();
+                if (look) lastLook = DateTime.UtcNow;
 
                 bool visible = mods.Values.Any(Backdrop.Visible);
                 bool shown = visible && !wasVisible;
@@ -302,11 +318,22 @@ static class Program
                     string wall = Backdrop.WallpaperSignature();
                     double recheck = 10;
                     double.TryParse(Convert.ToString(ink.GetValue("InkRecheckMinutes", "10")), System.Globalization.NumberStyles.Float, inv, out recheck);
+                    double liveEvery = 2;
+                    double.TryParse(Convert.ToString(ink.GetValue("InkLiveSeconds", "2")), System.Globalization.NumberStyles.Float, inv, out liveEvery);
+                    string liveMode = Convert.ToString(ink.GetValue("InkLiveMode", "auto")).ToLowerInvariant();
+
+                    bool changed = shown || layout != lastLayout || wall != lastWall;
                     bool due = recheck > 0 && (DateTime.UtcNow - lastSample).TotalMinutes >= recheck;
-                    if (mods.Count > 0 && (shown || layout != lastLayout || wall != lastWall || due))
+                    bool live = liveMode == "on" || (liveMode != "off" && DateTime.UtcNow < liveUntil);
+                    bool soon = live && liveEvery > 0 && (DateTime.UtcNow - lastSample).TotalSeconds >= liveEvery;
+
+                    if (mods.Count > 0 && (changed || due || soon))
                     {
+                        // a moving wallpaper is sampled once a tick; a still one is averaged
+                        // over three grabs, which costs nothing when it happens this rarely
+                        int rounds = live && !changed ? 1 : 3;
                         var readings = new Dictionary<string, List<double[]>>();
-                        for (int r = 0; r < 3; r++)
+                        for (int r = 0; r < rounds; r++)
                         {
                             if (r > 0) Thread.Sleep(1500);
                             foreach (var mod in mods)
@@ -319,14 +346,33 @@ static class Program
                                 readings[mod.Key].Add(rd);
                             }
                         }
+                        double moved = 0;
                         foreach (var rd in readings)
                         {
                             var mid = rd.Value.OrderBy(v => v[0]).ElementAt(rd.Value.Count / 2);
+                            double was;
+                            if (lastEff.TryGetValue(rd.Key, out was)) moved = Math.Max(moved, Math.Abs(mid[0] - was));
+                            lastEff[rd.Key] = mid[0];
                             ink.SetValue(rd.Key, mid[0].ToString("0.000", inv));
                             ink.SetValue(rd.Key + "C", mid[1].ToString("0.00", inv));
                         }
+                        // the backdrop moved on its own: keep watching it for a while
+                        if (moved > 0.02 && !changed) liveUntil = DateTime.UtcNow.AddSeconds(60);
                         if (readings.Count > 0) ink.SetValue("Tick", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
                         lastLayout = layout; lastWall = wall; lastSample = DateTime.UtcNow;
+                    }
+                    else if (!live && liveMode != "off" && mods.Count > 0 && (DateTime.UtcNow - lastWatch).TotalSeconds >= 5)
+                    {
+                        // one cheap grab, to notice a wallpaper that moves by itself
+                        lastWatch = DateTime.UtcNow;
+                        var mod = mods.First();
+                        bool exact;
+                        var area = Backdrop.Area(mod.Value, areas[mod.Key], out exact);
+                        var rd = Backdrop.Reading(area, exact ? 0 : 12);
+                        double was;
+                        if (rd != null && lastEff.TryGetValue(mod.Key, out was) && Math.Abs(rd[0] - was) > 0.02)
+                            liveUntil = DateTime.UtcNow.AddSeconds(60);
+                        if (rd != null) lastEff[mod.Key] = rd[0];
                     }
 
                     if (shown || (DateTime.UtcNow - lastTemps).TotalSeconds >= 10)
