@@ -4,3 +4,4 @@
 *.dll binary
 *.ttf binary
 *.otf binary
+.github export-ignore

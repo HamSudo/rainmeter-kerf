@@ -51,7 +51,8 @@ jobs:
         with:
           name: Kerf-${{ needs.build.outputs.version }}.rmskin
 
-      - run: gh release create "$GITHUB_REF_NAME" Kerf-*.rmskin \
+      - run: |
+          gh release create "$GITHUB_REF_NAME" Kerf-*.rmskin \
              --title "Kerf ${{ needs.build.outputs.version }}" \
              --generate-notes \
              $([[ "$GITHUB_REF_NAME" == *-* ]] && echo --prerelease)
