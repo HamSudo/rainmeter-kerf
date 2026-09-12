@@ -15,12 +15,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-        
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Kerf-ci-${{ github.run_number }}
-          path: dist/*.rmskin
-          retention-days: 7
 
 
       - run: pip install luaparser
@@ -28,3 +22,9 @@ jobs:
       - run: python tools/check.py
 
       - run: python tools/build-rmskin.py ci-${{ github.run_number }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kerf-ci-${{ github.run_number }}
+          path: dist/*.rmskin
+          retention-days: 7
