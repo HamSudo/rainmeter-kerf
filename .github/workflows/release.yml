@@ -1,0 +1,72 @@
+# CD: pushing a tag such as v1.1.0 builds the .rmskin and publishes the release.
+#
+#   git tag -a v1.1.0 -m "What this release is about"
+#   git push origin v1.1.0
+#
+# The tag's message opens the release notes; the commits since the previous
+# tag are listed under it.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write         # needed to create the release and upload the asset
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the whole history, so the notes can list commits since the last tag
+
+      - name: Fetch the tag's message
+        # checkout replaces an annotated tag with a plain one; fetch it again to get its message
+        run: git fetch --tags --force
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install the Lua parser
+        run: pip install luaparser
+
+      - name: Check the skin
+        run: python tools/check.py
+
+      - name: Build the .rmskin
+        shell: bash
+        run: python tools/build-rmskin.py "${GITHUB_REF_NAME#v}"
+
+      - name: Write the release notes
+        shell: bash
+        run: |
+          tag="$GITHUB_REF_NAME"
+          previous=$(git describe --tags --abbrev=0 "$tag^" 2>/dev/null || true)
+          {
+            git tag -l --format='%(contents)' "$tag"
+            echo
+            if [ -n "$previous" ]; then
+              echo "## Changes since $previous"
+              echo
+              git log --reverse --format='- %s' "$previous..$tag"
+              echo
+              echo "**Full diff:** https://github.com/$GITHUB_REPOSITORY/compare/$previous...$tag"
+            fi
+          } > notes.md
+          cat notes.md
+
+      - name: Publish the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.rmskin \
+            --title "Kerf ${GITHUB_REF_NAME#v}" \
+            --notes-file notes.md \
+            --verify-tag

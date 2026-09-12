@@ -1,5 +1,7 @@
 # Kerf
 
+[![CI](https://github.com/HamSudo/rainmeter-kerf/actions/workflows/ci.yml/badge.svg)](https://github.com/HamSudo/rainmeter-kerf/actions/workflows/ci.yml)
+
 A modular Rainmeter skin. A clock with a music line, plus CPU and GPU
 temperatures read straight from Windows -- no HWiNFO, no extra software.
 
@@ -8,7 +10,8 @@ accent colour, the font, the weights, the units and the alignment.
 
 ## Install
 
-Download `Kerf-1.0.0.rmskin` from the latest release and double-click it.
+Download the `.rmskin` from the [latest release](https://github.com/HamSudo/rainmeter-kerf/releases/latest)
+and double-click it.
 Rainmeter installs the skin, the fonts and the Chameleon plugin, and loads the
 clock, CPU and GPU on first run.
 
@@ -101,6 +104,25 @@ Chameleon plugin, packed the way Rainmeter's installer expects.
 
 The `.ini` and `.inc` files are UTF-16 in a checkout (Rainmeter requires it)
 and UTF-8 in the repository -- see `.gitattributes`.
+
+`python tools/check.py` runs the static checks (needs `pip install luaparser`):
+every include, script and section a skin refers to exists, the Lua parses, and
+every panel button calls a function that is defined.
+
+## Releases
+
+GitHub Actions does the building. Every push to `main` is checked and built on
+a clean Windows machine (`.github/workflows/ci.yml`), and the resulting
+`.rmskin` is kept with the run. Pushing a version tag publishes a release
+(`.github/workflows/release.yml`):
+
+```
+git tag -a v1.1.0 -m "One or two lines on what this release is about"
+git push origin v1.1.0
+```
+
+The tag's message opens the release notes, followed by every commit since the
+previous tag.
 
 ## Credits
 
