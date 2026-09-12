@@ -47,16 +47,22 @@ jobs:
       contents: write
     
     steps:
+      - uses: actions/checkout@v7
+
       - uses: actions/download-artifact@v8
         with:
           name: Kerf-${{ needs.build.outputs.version }}.rmskin
 
       - run: |
+          notes="release-notes/${GITHUB_REF_NAME%%-*}.md"
+          if [ ! -f "$notes" ]; then
+            echo "::error::$notes is missing - write the release notes first"
+            exit 1
+          fi
           gh release create "$GITHUB_REF_NAME" Kerf-*.rmskin \
              --title "Kerf ${{ needs.build.outputs.version }}" \
-             --generate-notes \
+             --notes-file "$notes" \
              $([[ "$GITHUB_REF_NAME" == *-* ]] && echo --prerelease)
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
   
