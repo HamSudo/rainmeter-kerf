@@ -1,4 +1,4 @@
-local MODULES  = { 'Clock', 'CPU', 'GPU' }
+local MODULES  = { 'Clock', 'CPU', 'GPU', 'Media' }
 local ACCENTS  = {
   { '242,184,75',  '150,114,46' },
   { '143,179,255', '60,92,170'  },
@@ -48,6 +48,7 @@ local FONT_METRICS = {
 local DEFAULT_METRICS = { VCapTop = 0.22, VBase = 0.77, VDotW = 0.08, VDotH = 0.08, VDotGap = 0.2, VDotR = 0.3 }
 local DISPLAYS = { 1.00, 1.33, 2.00 }
 local PARTS    = { 'Time', 'Seconds', 'Pulse', 'Day', 'Date' }
+local MEDIA_PARTS = { 'Art', 'Title', 'Artist', 'Pulse', 'Bar' }
 local LAYOUT_NAMES = {
   Clock = { [0] = 'Classic', 'Vertical', 'Horizontal' },
   CPU   = { [0] = 'Horizontal', 'Vertical', 'Gauge' },
@@ -105,6 +106,7 @@ local OPTIONAL_METERS = {
   'BtnL0', 'BtnL1', 'BtnL2', 'NoteLayout', 'LblShow', 'BtnSTime', 'BtnSSeconds', 'BtnSPulse', 'BtnSDay', 'BtnSDate', 'BtnSFlip',
   'LblFormat', 'BtnFmt24', 'BtnFmt12', 'LblWeight', 'BtnWPAll', 'BtnWPTime', 'BtnWPDay', 'BtnWPDate', 'BtnW300', 'BtnW400', 'BtnW700',
   'LblUnits', 'BtnU0', 'BtnU1', 'LblGpu', 'BtnG0', 'BtnG1', 'BtnG2', 'BtnG3',
+  'BtnRA0', 'BtnRA1', 'BtnMArt', 'BtnMTitle', 'BtnMArtist', 'BtnMPulse', 'BtnMBar',
 }
 local GENERAL_METERS = {
   'LblAccent', 'Sw1', 'Sw2', 'Sw3', 'Sw4', 'Sw5', 'Sw6', 'Sw7', 'Sw8', 'Sw9', 'Sw10', 'Sw11', 'Sw12',
@@ -145,8 +147,9 @@ function Render()
   for i = 0, 3 do button('BtnH' .. i, getn(target .. 'Hover') == i) end
 
   local isClock = target == 'Clock'
+  local isMedia = target == 'Media'
   local layout = getn(target .. 'Layout')
-  local names = LAYOUT_NAMES[target]
+  local names = LAYOUT_NAMES[target] or {}
   for i = 0, 2 do
     local meter = 'BtnL' .. i
     if names[i] then
@@ -158,6 +161,12 @@ function Render()
     end
   end
   SKIN:Bang('!HideMeter', 'NoteLayout')
+  -- the card has only the one layout, so the row offers its artwork instead
+  SKIN:Bang('!SetOption', 'LblLayout', 'Text', isMedia and 'Artwork' or 'Layout')
+  for i = 0, 1 do
+    SKIN:Bang(isMedia and '!ShowMeter' or '!HideMeter', 'BtnRA' .. i)
+    if isMedia then button('BtnRA' .. i, getn('MediaDisc') == i) end
+  end
 
   button('BtnA0', getn(target .. 'Align') == 0)
   for i = 1, 6 do
@@ -169,12 +178,16 @@ function Render()
     SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', 'BtnS' .. part)
     if isClock then button('BtnS' .. part, getn('ClockShow' .. part) == 1) end
   end
-  local flips = not isClock and layout ~= 2
+  for _, part in ipairs(MEDIA_PARTS) do
+    SKIN:Bang(isMedia and '!ShowMeter' or '!HideMeter', 'BtnM' .. part)
+    if isMedia then button('BtnM' .. part, getn('MediaShow' .. part) == 1) end
+  end
+  local flips = not isClock and not isMedia and layout ~= 2
   SKIN:Bang(flips and '!ShowMeter' or '!HideMeter', 'BtnSFlip')
-  SKIN:Bang((isClock or flips) and '!ShowMeter' or '!HideMeter', 'LblShow')
+  SKIN:Bang((isClock or isMedia or flips) and '!ShowMeter' or '!HideMeter', 'LblShow')
   if flips then button('BtnSFlip', getn(target .. 'Flip') == 1) end
   renderWeights(isClock)
-  renderTemp(isClock, layout)
+  renderTemp(isClock, isMedia, layout)
   local twelve = get('HourFormat') == '%I'
   for _, m in ipairs({ 'LblFormat', 'BtnFmt24', 'BtnFmt12' }) do SKIN:Bang(isClock and '!ShowMeter' or '!HideMeter', m) end
   button('BtnFmt24', not twelve)
@@ -264,7 +277,7 @@ function Align(n)
 end
 
 function Layout(n)
-  local file = LAYOUT_FILES[target][n]
+  local file = (LAYOUT_FILES[target] or {})[n]
   if not file then return end
   put(target .. 'Layout', n, mods)
   SKIN:Bang('!ActivateConfig', 'Kerf\\' .. target, file)
@@ -339,8 +352,8 @@ local function hasGpu(which)
   return v ~= nil and v > 5
 end
 
-function renderTemp(isClock, layout)
-  local temp = not isClock
+function renderTemp(isClock, isMedia, layout)
+  local temp = not isClock and not isMedia
   for _, m in ipairs({ 'LblUnits', 'BtnU0', 'BtnU1' }) do SKIN:Bang(temp and '!ShowMeter' or '!HideMeter', m) end
   if temp then
     button('BtnU0', getn(target .. 'Fahr') ~= 1)
@@ -357,13 +370,22 @@ function renderTemp(isClock, layout)
     SKIN:Bang('!SetOption', 'BtnG0', 'Y', y + 72)
     rows = (layout ~= 2 and 1 or 0) + 1 + (pick and 1 or 0)
   end
-  SKIN:Bang('!SetVariable', 'Shift', (rows - 3) * 56 - 216)
+  SKIN:Bang('!SetVariable', 'Shift', isMedia and -328 or ((rows - 3) * 56 - 216))
   for i = 0, 3 do
     local visible = pick
     SKIN:Bang(visible and '!ShowMeter' or '!HideMeter', 'BtnG' .. i)
     if visible then button('BtnG' .. i, show == i) end
   end
   SKIN:Bang(pick and '!ShowMeter' or '!HideMeter', 'LblGpu')
+end
+
+function Artwork(n)
+  put('MediaDisc', n, mods) refresh('Media') Render()
+end
+
+function MediaToggle(part)
+  local key = 'MediaShow' .. part
+  put(key, 1 - getn(key), mods) refresh('Media') Render()
 end
 
 function Units(f)

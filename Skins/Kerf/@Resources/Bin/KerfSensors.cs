@@ -6,6 +6,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Windows.Foundation;
+using Windows.Media.Control;
+using Windows.Storage.Streams;
 using Microsoft.Win32;
 
 static class Kmt
@@ -220,6 +223,233 @@ static class Backdrop
     }
 }
 
+// The Windows media session: whatever is playing, from the same place the
+// volume flyout reads it -- a browser tab, Spotify, a local player, anything
+// that registers with the system transport controls.
+static class Media
+{
+    const int Size = 192;
+    const string SEP = "\u0001";
+    static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    static double Now() { return (DateTime.UtcNow - Epoch).TotalSeconds; }
+
+    // WinRT's async operations are awaited by hand: this runs on its own MTA
+    // thread, so the completion handler lands on the pool and a plain wait is
+    // enough -- no message pump, and no projection assembly to reference.
+    static T Await<T>(IAsyncOperation<T> op, int ms)
+    {
+        if (op == null) return default(T);
+        using (var done = new ManualResetEventSlim(false))
+        {
+            op.Completed = (o, s) => done.Set();
+            if (!done.Wait(ms) || op.Status != AsyncStatus.Completed) return default(T);
+            return op.GetResults();
+        }
+    }
+
+    // the ink loop already knows whether the desktop is covered; when it is,
+    // nobody can see the card, so ask the session less often
+    public static volatile bool Awake = true;
+
+    public static void Start()
+    {
+        try
+        {
+            var t = new Thread(Loop);
+            t.IsBackground = true;
+            t.SetApartmentState(ApartmentState.MTA);
+            t.Start();
+        }
+        catch { }
+    }
+
+    static void Loop()
+    {
+        RegistryKey key;
+        try { key = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Media"); }
+        catch { return; }
+        GlobalSystemMediaTransportControlsSessionManager mgr = null;
+        string artKey = null;
+        DateTime swept = DateTime.MinValue;
+        while (true)
+        {
+            try { mgr = Poll(key, mgr, ref artKey); }
+            catch { mgr = null; }
+            if ((DateTime.UtcNow - swept).TotalSeconds >= 30)
+            {
+                swept = DateTime.UtcNow;
+                Sweep();
+            }
+            if (Process.GetProcessesByName("Rainmeter").Length == 0) break;
+            Thread.Sleep(Awake ? 1000 : 3000);
+        }
+        try { key.Close(); } catch { }
+    }
+
+    static void Write(RegistryKey key, string app, string title, string artist, int status, double pos, double len)
+    {
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        key.SetValue("App", app);
+        key.SetValue("Title", title);
+        key.SetValue("Artist", artist);
+        key.SetValue("Status", status.ToString(inv));
+        key.SetValue("Pos", pos.ToString("0.000", inv));
+        key.SetValue("Len", len.ToString("0.000", inv));
+        key.SetValue("PosAt", Now().ToString("0.000", inv));
+        key.SetValue("Tick", ((long)Now()).ToString(inv));
+    }
+
+    static void Quiet(RegistryKey key, ref string artKey)
+    {
+        if (artKey != null)
+        {
+            artKey = null;
+            key.SetValue("Art", "");
+            key.SetValue("Disc", "");
+        }
+        Write(key, "", "", "", 0, 0, 0);
+    }
+
+    static GlobalSystemMediaTransportControlsSessionManager Poll(
+        RegistryKey key, GlobalSystemMediaTransportControlsSessionManager mgr, ref string artKey)
+    {
+        if (mgr == null) mgr = Await(GlobalSystemMediaTransportControlsSessionManager.RequestAsync(), 5000);
+        if (mgr == null) { Quiet(key, ref artKey); return null; }
+
+        var s = mgr.GetCurrentSession();
+        if (s == null) { Quiet(key, ref artKey); return mgr; }
+
+        var p = Await(s.TryGetMediaPropertiesAsync(), 3000);
+        string title = p != null ? (p.Title ?? "") : "";
+        string album = p != null ? (p.AlbumTitle ?? "") : "";
+        string artist = p != null ? (p.Artist ?? "") : "";
+        if (artist.Length == 0) artist = album;
+
+        int status;
+        switch (s.GetPlaybackInfo().PlaybackStatus)
+        {
+            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing: status = 1; break;
+            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused: status = 2; break;
+            default: status = 0; break;
+        }
+
+        var t = s.GetTimelineProperties();
+        double pos = (t.Position - t.StartTime).TotalSeconds;
+        double len = (t.EndTime - t.StartTime).TotalSeconds;
+        if (pos < 0 || double.IsNaN(pos)) pos = 0;
+        if (len < 0 || double.IsNaN(len) || len > 86400) len = 0;
+        if (len > 0 && pos > len) pos = len;
+
+        // the artwork only has to be redrawn when the track itself changes
+        string want = title + SEP + artist + SEP + album + SEP + s.SourceAppUserModelId;
+        if (want != artKey)
+        {
+            artKey = want;
+            string art = "", disc = "";
+            try
+            {
+                byte[] raw = Thumb(p);
+                if (raw != null) Render(raw, out art, out disc);
+            }
+            catch { art = ""; disc = ""; }
+            key.SetValue("Art", art);
+            key.SetValue("Disc", disc);
+        }
+
+        Write(key, s.SourceAppUserModelId ?? "", title, artist, status, pos, len);
+        return mgr;
+    }
+
+    static byte[] Thumb(GlobalSystemMediaTransportControlsSessionMediaProperties p)
+    {
+        if (p == null || p.Thumbnail == null) return null;
+        var st = Await(p.Thumbnail.OpenReadAsync(), 4000);
+        if (st == null || st.Size == 0 || st.Size > 8 * 1024 * 1024) return null;
+        var rd = new DataReader(st.GetInputStreamAt(0));
+        uint n = Await(rd.LoadAsync((uint)st.Size), 4000);
+        if (n == 0) return null;
+        var buf = new byte[n];
+        rd.ReadBytes(buf);
+        return buf;
+    }
+
+    // Rainmeter caches an image against its path, so every cover is written
+    // under a name of its own and the stale ones are swept up behind it
+    static void Render(byte[] raw, out string art, out string disc)
+    {
+        art = ""; disc = "";
+        string stamp = ((long)(Now() * 1000)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string dir = Path.GetTempPath();
+        string a = Path.Combine(dir, "Kerf-art-" + stamp + ".png");
+        string d = Path.Combine(dir, "Kerf-disc-" + stamp + ".png");
+        using (var ms = new MemoryStream(raw))
+        using (var src = new System.Drawing.Bitmap(ms))
+        using (var square = Square(src))
+        {
+            square.Save(a, System.Drawing.Imaging.ImageFormat.Png);
+            using (var ring = Disc(square)) ring.Save(d, System.Drawing.Imaging.ImageFormat.Png);
+        }
+        art = a; disc = d;
+    }
+
+    static System.Drawing.Bitmap Square(System.Drawing.Image src)
+    {
+        int side = Math.Min(src.Width, src.Height);
+        var crop = new System.Drawing.Rectangle((src.Width - side) / 2, (src.Height - side) / 2, side, side);
+        var bmp = new System.Drawing.Bitmap(Size, Size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+            g.DrawImage(src, new System.Drawing.Rectangle(0, 0, Size, Size), crop, System.Drawing.GraphicsUnit.Pixel);
+        }
+        return bmp;
+    }
+
+    // the same cover as a record: round, with the spindle hole punched out, so
+    // the skin only has to turn it
+    static System.Drawing.Bitmap Disc(System.Drawing.Image square)
+    {
+        float hole = Size * 0.17f;
+        var bmp = new System.Drawing.Bitmap(Size, Size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            using (var path = new System.Drawing.Drawing2D.GraphicsPath())
+            {
+                path.AddEllipse(0f, 0f, Size, Size);
+                path.AddEllipse((Size - hole) / 2f, (Size - hole) / 2f, hole, hole);
+                using (var region = new System.Drawing.Region(path))
+                {
+                    g.Clip = region;
+                    g.DrawImage(square, 0, 0, Size, Size);
+                }
+            }
+            g.ResetClip();
+            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(80, 0, 0, 0), Size * 0.016f))
+                g.DrawEllipse(pen, Size * 0.008f, Size * 0.008f, Size * 0.984f, Size * 0.984f);
+            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(46, 255, 255, 255), Size * 0.006f))
+                g.DrawEllipse(pen, Size * 0.295f, Size * 0.295f, Size * 0.41f, Size * 0.41f);
+            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(96, 0, 0, 0), Size * 0.012f))
+                g.DrawEllipse(pen, (Size - hole) / 2f, (Size - hole) / 2f, hole, hole);
+        }
+        return bmp;
+    }
+
+    static void Sweep()
+    {
+        try
+        {
+            var dir = new DirectoryInfo(Path.GetTempPath());
+            foreach (var f in dir.GetFiles("Kerf-art-*.png").Concat(dir.GetFiles("Kerf-disc-*.png")))
+                if ((DateTime.UtcNow - f.LastWriteTimeUtc).TotalMinutes > 2)
+                    try { f.Delete(); } catch { }
+        }
+        catch { }
+    }
+}
+
 static class Program
 {
     static readonly Regex Discrete = new Regex(@"nvidia|geforce|rtx|gtx|quadro|radeon rx|radeon pro|\brx \d|arc a\d|arc b\d", RegexOptions.IgnoreCase);
@@ -283,6 +513,7 @@ static class Program
             if (!owned) return;
 
             Backdrop.SetProcessDPIAware();
+            Media.Start();
             var adapters = GetAdapters();
             DateTime refreshed = DateTime.UtcNow;
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Kerf\Sensors");
@@ -308,6 +539,7 @@ static class Program
                 bool shown = visible && !wasVisible;
                 wasVisible = visible;
                 ink.SetValue("Visible", visible ? "1" : "0");
+                Media.Awake = visible;
                 ink.SetValue("Alive", now);
 
                 if (visible)
