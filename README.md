@@ -2,8 +2,9 @@
 
 [![CI](https://github.com/HamSudo/rainmeter-kerf/actions/workflows/ci.yml/badge.svg)](https://github.com/HamSudo/rainmeter-kerf/actions/workflows/ci.yml)
 
-A modular Rainmeter skin. A clock with a music line, plus CPU and GPU
-temperatures read straight from Windows -- no HWiNFO, no extra software.
+A modular Rainmeter skin. A clock with a music line, a card for whatever is
+playing, plus CPU and GPU temperatures read straight from Windows -- no
+HWiNFO, no extra software.
 
 Everything is set from one panel: layouts, sizes, transparency, hover, the
 accent colour, the font, the weights, the units and the alignment.
@@ -21,6 +22,9 @@ Requires Rainmeter 4.5 or newer on Windows 10 or 11.
 
 - **Clock** -- time, seconds, a music waveform, the day and the date, in a
   classic, vertical or horizontal layout.
+- **Media** -- a compact card for whatever is playing: the cover, the track,
+  the artist, the music line and a progress bar, in one horizontal row with a
+  rule between the cover and the rest.
 - **CPU** and **GPU** -- temperature in Celsius or Fahrenheit, as a horizontal
   row, a vertical bar or a circular gauge. Machines with two GPUs can show the
   integrated one, the dedicated one, or both.
@@ -31,8 +35,9 @@ Right-click any module and choose **Customize Kerf**.
 
 - **General** -- accent colour, font, weights, ink mode, display scale, units
   and the panel's own light or dark theme.
-- **Clock / CPU / GPU** -- layout, size, transparency, hover behaviour,
-  alignment, and which parts of the clock are shown.
+- **Clock / Media / CPU / GPU** -- layout, size, transparency, hover
+  behaviour, alignment, and which parts are shown. The Media tab also chooses
+  between a square cover and a spinning disc.
 
 Alignment is either "Follow", where you drag the module wherever you like, or
 a pinned position (an edge, the middle or a corner) with an even margin, where
@@ -65,6 +70,23 @@ The line under the clock follows whatever is playing: its height tracks the
 loudness and the Windows volume, and it glows in the accent colour on the
 beat. Turn the pulse off in the panel and the line stays as a quiet rule.
 
+## Now playing
+
+The Media card reads the Windows media session -- the same one behind the
+volume flyout -- so it follows whatever registers with it: a browser tab,
+Spotify, a local player. Nothing has to be installed and no player-specific
+plugin is involved.
+
+The cover is drawn either as a square or as a disc that turns while the track
+plays and coasts to a stop when it is paused. Kerf cuts the disc itself, hole
+and all, from the artwork the session hands over. A track with no artwork gets
+a quiet placeholder instead, and when nothing is playing the card says so.
+
+Cover, title, artist, pulse and progress bar can each be turned off in the
+panel; the rows close up over whatever is hidden. A live stream has no end, so
+it shows the elapsed time on its own rather than a progress bar that could
+never fill.
+
 ## Fonts
 
 Kerf bundles fifteen display and mono families (SIL Open Font License) in
@@ -89,9 +111,15 @@ given their own metrics in `FONT_METRICS` in the same file.
 
 `@Resources\Bin\KerfSensors.cs` is a small helper that reads the CPU's
 thermal zone and the GPU's D3DKMT performance data -- the same numbers Task
-Manager shows. Rainmeter builds it with the C# compiler that ships with
-Windows and keeps it running while Rainmeter is open; it writes its readings
-to `HKCU\Software\Kerf`.
+Manager shows -- and the Windows media session. Rainmeter builds it with the
+C# compiler that ships with Windows and keeps it running while Rainmeter is
+open; it writes its readings to `HKCU\Software\Kerf`, and the cover art to
+`%TEMP%` as `Kerf-art-*.png` and `Kerf-disc-*.png`, sweeping up the stale ones
+behind it.
+
+The media half is WinRT, compiled against the metadata in
+`%WINDIR%\System32\WinMetadata` and the `System.Runtime` facade from the GAC.
+Both ship with Windows 10 and 11, so no SDK is needed to build the helper.
 
 ## Build from source
 
@@ -103,7 +131,10 @@ writes `dist/Kerf-1.0.0.rmskin`: the skin, the compiled helper and the
 Chameleon plugin, packed the way Rainmeter's installer expects.
 
 The `.ini` and `.inc` files are UTF-16 in a checkout (Rainmeter requires it)
-and UTF-8 in the repository -- see `.gitattributes`.
+and UTF-8 in the repository -- see `.gitattributes`. Edit them with something
+that keeps the encoding: a tool that saves UTF-8 over one of them will load as
+mojibake in Rainmeter, and `tools/check.py` fails on a missing BOM. The `.lua`
+and `.cs` files are plain UTF-8 and need no such care.
 
 `python tools/check.py` runs the static checks (needs `pip install luaparser`):
 every include, script and section a skin refers to exists, the Lua parses, and
