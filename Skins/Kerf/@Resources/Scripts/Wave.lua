@@ -96,10 +96,25 @@ function Update()
 
     local b0, b1 = SKIN:GetMeasure('mBass0'), SKIN:GetMeasure('mBass1')
     local bass = ((b0 and b0:GetValue() or 0) + (b1 and b1:GetValue() or 0)) / 2
-    bassAvg = (bassAvg or bass) + (bass - (bassAvg or bass)) * (1 - 0.985 ^ frames)
-    local punch = math.min(1, math.max(0, (bass - bassAvg * 0.9) / math.max(0.06, bassAvg * 0.7)))
-    local base = math.min(0.32, 0.12 + amp * 1.5)
-    local target = math.max(base, punch) * (amp > 0.005 and 1 or 0)
+
+    -- Two envelopes of the bass: one quick enough to ride each kick, one slow
+    -- enough to stay the floor it is measured against. A single average --
+    -- which is what this used to compare against -- catches up with steady
+    -- music inside about a second, so the beat stopped registering at all and
+    -- the line just sat there glowing.
+    bassFast = (bassFast or bass) + (bass - (bassFast or bass)) * (1 - 0.87 ^ frames)
+    bassSlow = (bassSlow or bass) + (bass - (bassSlow or bass)) * (1 - 0.996 ^ frames)
+    local over = math.max(0, bassFast - bassSlow)
+
+    -- the loudest beat of the last few seconds sets the scale, so quiet and
+    -- loud material both swing the full range instead of one pegging and the
+    -- other never showing
+    bassPeak = math.max(over, (bassPeak or 0) * 0.999 ^ frames)
+    local punch = math.min(1, math.max(0, over / math.max(bassPeak, 0.008)))
+
+    -- loudness sets how bright it rests, the beat rides on top of that
+    local base = math.min(0.5, 0.1 + amp * 2)
+    local target = (base + punch * (1 - base)) * (amp > 0.005 and 1 or 0)
     glowLv = glowLv or 0
     glowLv = glowLv + (target - glowLv) * (1 - (target > glowLv and 0.25 or 0.85) ^ frames)
     if glowLv < 0.004 then
