@@ -415,7 +415,10 @@ static class Media
     // the skin only has to turn it
     static System.Drawing.Bitmap Disc(System.Drawing.Image square)
     {
-        float hole = Size * 0.17f;
+        float d = Size;                  // the record fills its canvas
+        float o = 0f;
+        float hole = d * 0.17f;
+        float hx = (Size - hole) / 2f;
         var bmp = new System.Drawing.Bitmap(Size, Size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         using (var g = System.Drawing.Graphics.FromImage(bmp))
         {
@@ -423,21 +426,21 @@ static class Media
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
             using (var path = new System.Drawing.Drawing2D.GraphicsPath())
             {
-                path.AddEllipse(0f, 0f, Size, Size);
-                path.AddEllipse((Size - hole) / 2f, (Size - hole) / 2f, hole, hole);
+                path.AddEllipse(o, o, d, d);
+                path.AddEllipse(hx, hx, hole, hole);
                 using (var region = new System.Drawing.Region(path))
                 {
                     g.Clip = region;
-                    g.DrawImage(square, 0, 0, Size, Size);
+                    g.DrawImage(square, o, o, d, d);
                 }
             }
             g.ResetClip();
-            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(80, 0, 0, 0), Size * 0.016f))
-                g.DrawEllipse(pen, Size * 0.008f, Size * 0.008f, Size * 0.984f, Size * 0.984f);
-            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(46, 255, 255, 255), Size * 0.006f))
-                g.DrawEllipse(pen, Size * 0.295f, Size * 0.295f, Size * 0.41f, Size * 0.41f);
-            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(96, 0, 0, 0), Size * 0.012f))
-                g.DrawEllipse(pen, (Size - hole) / 2f, (Size - hole) / 2f, hole, hole);
+            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(80, 0, 0, 0), d * 0.016f))
+                g.DrawEllipse(pen, o + d * 0.008f, o + d * 0.008f, d * 0.984f, d * 0.984f);
+            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(46, 255, 255, 255), d * 0.006f))
+                g.DrawEllipse(pen, o + d * 0.295f, o + d * 0.295f, d * 0.41f, d * 0.41f);
+            using (var pen = new System.Drawing.Pen(System.Drawing.Color.FromArgb(96, 0, 0, 0), d * 0.012f))
+                g.DrawEllipse(pen, hx, hx, hole, hole);
         }
         return bmp;
     }

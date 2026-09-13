@@ -21,7 +21,7 @@ function Initialize()
   title, artist = SKIN:GetMeasure('mTitle'), SKIN:GetMeasure('mArtist')
   status, posM, lenM, atM = SKIN:GetMeasure('mStatus'), SKIN:GetMeasure('mPos'), SKIN:GetMeasure('mLen'), SKIN:GetMeasure('mPosAt')
   artM, discM = SKIN:GetMeasure('mArt'), SKIN:GetMeasure('mDisc')
-  cardH = SKIN:GetMeasure('mCardH')
+  cardH, pad = SKIN:GetMeasure('mCardH'), SKIN:GetMeasure('mPad')
   idle = SELF:GetOption('Idle', 'Nothing playing')
   spin, rate, last = 0, 0, os.clock()
   shown = {}
@@ -43,21 +43,27 @@ local function variable(name, value)
   return true
 end
 
--- Rainmeter fits a rotated image into the meter's box, and a turning square's
--- box swells to sqrt(2) and back on every quarter turn -- left alone that
--- pumps the disc in and out. Growing the box by exactly that factor cancels
--- it, so the cover keeps one diameter and only spins.
+-- ImageRotate refits the turned image into a fresh bounding box, and that box
+-- is whole pixels -- so the record can only ever land on a size that is a
+-- pixel or so out, and it breathes as it turns. A transformation matrix
+-- instead turns what is drawn and leaves the meter alone: no refit, no
+-- rounding, one exact size at every angle.
+--
+-- The matrix is [A C E ; B D F], mapping (x,y) to (Ax + Cy + E, Bx + Dy + F).
+-- Rotating about the record's centre is the usual move-to-origin, turn, and
+-- move back, folded into the offsets. The card's reserved margin gives the
+-- corners somewhere to go at 45 degrees.
 local function turn(angle)
   local side = cardH and cardH:GetValue() or 0
   if side <= 0 then return end
+  local c = (pad and pad:GetValue() or 0) + side / 2
   local r = math.rad(angle)
-  local box = side * (math.abs(math.cos(r)) + math.abs(math.sin(r)))
-  local off = (side - box) / 2
-  SKIN:Bang('!SetOption', 'MeterDisc', 'W', string.format('%.0f', box))
-  SKIN:Bang('!SetOption', 'MeterDisc', 'H', string.format('%.0f', box))
-  SKIN:Bang('!SetOption', 'MeterDisc', 'X', string.format('%.0f', off))
-  SKIN:Bang('!SetOption', 'MeterDisc', 'Y', string.format('%.0f', off))
-  SKIN:Bang('!SetOption', 'MeterDisc', 'ImageRotate', string.format('%.2f', angle))
+  local cs, sn = math.cos(r), math.sin(r)
+  SKIN:Bang('!SetOption', 'MeterDisc', 'TransformationMatrix',
+    string.format('%.6f;%.6f;%.6f;%.6f;%.4f;%.4f',
+      cs, sn, -sn, cs,
+      c * (1 - cs + sn),
+      c * (1 - sn - cs)))
 end
 
 function Update()
