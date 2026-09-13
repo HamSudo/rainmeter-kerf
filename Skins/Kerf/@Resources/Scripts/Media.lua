@@ -21,6 +21,7 @@ function Initialize()
   title, artist = SKIN:GetMeasure('mTitle'), SKIN:GetMeasure('mArtist')
   status, posM, lenM, atM = SKIN:GetMeasure('mStatus'), SKIN:GetMeasure('mPos'), SKIN:GetMeasure('mLen'), SKIN:GetMeasure('mPosAt')
   artM, discM = SKIN:GetMeasure('mArt'), SKIN:GetMeasure('mDisc')
+  cardH = SKIN:GetMeasure('mCardH')
   idle = SELF:GetOption('Idle', 'Nothing playing')
   spin, rate, last = 0, 0, os.clock()
   shown = {}
@@ -40,6 +41,23 @@ local function variable(name, value)
   shown[name] = value
   SKIN:Bang('!SetVariable', name, value)
   return true
+end
+
+-- Rainmeter fits a rotated image into the meter's box, and a turning square's
+-- box swells to sqrt(2) and back on every quarter turn -- left alone that
+-- pumps the disc in and out. Growing the box by exactly that factor cancels
+-- it, so the cover keeps one diameter and only spins.
+local function turn(angle)
+  local side = cardH and cardH:GetValue() or 0
+  if side <= 0 then return end
+  local r = math.rad(angle)
+  local box = side * (math.abs(math.cos(r)) + math.abs(math.sin(r)))
+  local off = (side - box) / 2
+  SKIN:Bang('!SetOption', 'MeterDisc', 'W', string.format('%.0f', box))
+  SKIN:Bang('!SetOption', 'MeterDisc', 'H', string.format('%.0f', box))
+  SKIN:Bang('!SetOption', 'MeterDisc', 'X', string.format('%.0f', off))
+  SKIN:Bang('!SetOption', 'MeterDisc', 'Y', string.format('%.0f', off))
+  SKIN:Bang('!SetOption', 'MeterDisc', 'ImageRotate', string.format('%.2f', angle))
 end
 
 function Update()
@@ -84,7 +102,7 @@ function Update()
   rate = rate + (target - rate) * (1 - 0.97 ^ (dt * 60))
   if num('#Disc#') == 1 and rate > 0.05 then
     spin = (spin + rate * dt) % 360
-    SKIN:Bang('!SetOption', 'MeterDisc', 'ImageRotate', string.format('%.2f', spin))
+    turn(spin)
     dirty = true
   end
 

@@ -251,6 +251,9 @@ static class Media
     // nobody can see the card, so ask the session less often
     public static volatile bool Awake = true;
 
+    // the artwork the skin is pointed at, so the sweep leaves it alone
+    static string curArt = "", curDisc = "";
+
     public static void Start()
     {
         try
@@ -304,6 +307,7 @@ static class Media
         if (artKey != null)
         {
             artKey = null;
+            curArt = ""; curDisc = "";
             key.SetValue("Art", "");
             key.SetValue("Disc", "");
         }
@@ -352,6 +356,7 @@ static class Media
                 if (raw != null) Render(raw, out art, out disc);
             }
             catch { art = ""; disc = ""; }
+            curArt = art; curDisc = disc;
             key.SetValue("Art", art);
             key.SetValue("Disc", disc);
         }
@@ -443,8 +448,13 @@ static class Media
         {
             var dir = new DirectoryInfo(Path.GetTempPath());
             foreach (var f in dir.GetFiles("Kerf-art-*.png").Concat(dir.GetFiles("Kerf-disc-*.png")))
+            {
+                // whatever is on screen stays, however long the track has run
+                if (f.FullName.Equals(curArt, StringComparison.OrdinalIgnoreCase)) continue;
+                if (f.FullName.Equals(curDisc, StringComparison.OrdinalIgnoreCase)) continue;
                 if ((DateTime.UtcNow - f.LastWriteTimeUtc).TotalMinutes > 2)
                     try { f.Delete(); } catch { }
+            }
         }
         catch { }
     }
