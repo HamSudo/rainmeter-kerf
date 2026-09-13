@@ -42,12 +42,25 @@ def stage_skin(stage, skin_dir):
     return target
 
 
+WINDIR = os.environ.get('WINDIR', r'C:\Windows')
+# the helper reads the Windows media session, which means WinRT: the metadata
+# ships with Windows itself and the facade with .NET Framework, so no SDK
+WINMD = os.path.join(WINDIR, 'System32', 'WinMetadata')
+REFS = ['System.Drawing.dll',
+        os.path.join(WINMD, 'Windows.Foundation.winmd'),
+        os.path.join(WINMD, 'Windows.Media.winmd'),
+        os.path.join(WINMD, 'Windows.Storage.winmd'),
+        os.path.join(WINDIR, 'Microsoft.NET', 'assembly', 'GAC_MSIL', 'System.Runtime',
+                     'v4.0_4.0.0.0__b03f5f7f11d50a3a', 'System.Runtime.dll')]
+
+
 def build_helper(skin):
     bin_dir = os.path.join(skin, '@Resources', 'Bin')
     source = os.path.join(bin_dir, 'KerfSensors.cs')
     exe = os.path.join(bin_dir, 'KerfSensors.exe')
-    subprocess.run([CSC, '/nologo', '/target:winexe', '/optimize', '/r:System.Drawing.dll',
-                    '/out:' + exe, source], check=True)
+    subprocess.run([CSC, '/nologo', '/target:winexe', '/optimize']
+                   + ['/r:' + r for r in REFS]
+                   + ['/out:' + exe, source], check=True)
 
 
 def main():
