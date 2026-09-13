@@ -182,13 +182,29 @@ a clean Windows machine (`.github/workflows/ci.yml`), and the resulting
 `.rmskin` is kept with the run. Pushing a version tag publishes a release
 (`.github/workflows/release.yml`):
 
+Write the release notes first. The workflow publishes
+`release-notes/<tag>.md` as the release body and fails if that file is
+missing, so it is never possible to ship a release with no notes:
+
 ```
-git tag -a v1.1.0 -m "One or two lines on what this release is about"
-git push origin v1.1.0
+git add release-notes/v1.2.0.md
+git commit -m "Add release notes for version 1.2.0"
+git push
+git tag -a v1.2.0 -m "One or two lines on what this release is about"
+git push origin v1.2.0
 ```
 
-The tag's message opens the release notes, followed by every commit since the
-previous tag.
+A tag with a suffix (`v1.2.0-rc1`) is published as a prerelease and reads its
+notes from the part before the dash.
+
+If a release run fails and you need to tag the same version again, delete the
+tag on both sides first -- moving it with `--force` leaves the old one behind
+on some clones:
+
+```
+git tag -d v1.2.0
+git push origin :refs/tags/v1.2.0
+```
 
 ## Credits
 
