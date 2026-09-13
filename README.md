@@ -140,6 +140,41 @@ and `.cs` files are plain UTF-8 and need no such care.
 every include, script and section a skin refers to exists, the Lua parses, and
 every panel button calls a function that is defined.
 
+### Testing a working copy
+
+The checks are static. To see a change on a real desktop, copy the skin over
+an installed Kerf and let Rainmeter reload it:
+
+```
+robocopy Skins\Kerf "%USERPROFILE%\Documents\Rainmeter\Skins\Kerf" /MIR /R:0 /W:0 /XF *.exe
+del "%USERPROFILE%\Documents\Rainmeter\Skins\Kerf\@Resources\Bin\KerfSensors.exe"
+"%PROGRAMFILES%\Rainmeter\Rainmeter.exe" !RefreshApp
+```
+
+Deleting the helper matters: Rainmeter only builds `KerfSensors.exe` when it
+is missing, so an old one goes on running against the new skin and the change
+looks like it did nothing. `/R:0 /W:0` stops robocopy retrying for half an
+hour over a font Rainmeter holds open.
+
+A module that is not running yet has to be activated once:
+
+```
+"%PROGRAMFILES%\Rainmeter\Rainmeter.exe" !ActivateConfig "Kerf\Media" "Media.ini"
+```
+
+The helper writes everything it reads to `HKCU\Software\Kerf`, which is the
+quickest way to tell a skin problem from a sensor problem:
+
+```
+reg query HKCU\Software\Kerf\Media
+reg query HKCU\Software\Kerf\Sensors
+```
+
+Kerf draws on the desktop layer, so any open window covers it. While it is
+covered, `Visible` under `HKCU\Software\Kerf\Ink` is 0 and the live measures
+are paused -- show the desktop before judging how a skin looks or why the
+wave has stopped moving.
+
 ## Releases
 
 GitHub Actions does the building. Every push to `main` is checked and built on
