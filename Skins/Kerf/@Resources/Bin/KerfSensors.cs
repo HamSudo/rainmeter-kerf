@@ -254,6 +254,65 @@ static class Media
     // the artwork the skin is pointed at, so the sweep leaves it alone
     static string curArt = "", curDisc = "";
 
+    // The session raises an event the moment a track, a timeline or a
+    // play/pause changes. Waiting on this instead of sleeping means the
+    // registry is written as it happens rather than up to a poll late; the
+    // timeout is only a fallback, since a session reports its position when
+    // it changes but not while it simply runs on.
+    //
+    static readonly AutoResetEvent Bump = new AutoResetEvent(false);
+    static GlobalSystemMediaTransportControlsSession hooked;
+    static string hookedId;
+    static GlobalSystemMediaTransportControlsSessionManager hookedMgr;
+    static TypedEventHandler<GlobalSystemMediaTransportControlsSession, MediaPropertiesChangedEventArgs> onProps;
+    static TypedEventHandler<GlobalSystemMediaTransportControlsSession, PlaybackInfoChangedEventArgs> onPlayback;
+    static TypedEventHandler<GlobalSystemMediaTransportControlsSession, TimelinePropertiesChangedEventArgs> onTimeline;
+
+    static void Unhook()
+    {
+        if (hooked == null) return;
+        try
+        {
+            if (onProps != null) hooked.MediaPropertiesChanged -= onProps;
+            if (onPlayback != null) hooked.PlaybackInfoChanged -= onPlayback;
+            if (onTimeline != null) hooked.TimelinePropertiesChanged -= onTimeline;
+        }
+        catch { }
+        hooked = null; hookedId = null;
+    }
+
+    // GetCurrentSession can hand back a fresh wrapper for the same session, so
+    // what is already hooked is judged by which app it belongs to
+    static void Hook(GlobalSystemMediaTransportControlsSession s)
+    {
+        string id = s == null ? null : (s.SourceAppUserModelId ?? "");
+        if (hooked != null && id == hookedId) return;
+        Unhook();
+        if (s == null) return;
+        try
+        {
+            onProps = (a, b) => Bump.Set();
+            onPlayback = (a, b) => Bump.Set();
+            onTimeline = (a, b) => Bump.Set();
+            s.MediaPropertiesChanged += onProps;
+            s.PlaybackInfoChanged += onPlayback;
+            s.TimelinePropertiesChanged += onTimeline;
+            hooked = s; hookedId = id;
+        }
+        catch { }
+    }
+
+    static void HookManager(GlobalSystemMediaTransportControlsSessionManager mgr)
+    {
+        if (mgr == null || ReferenceEquals(mgr, hookedMgr)) return;
+        try
+        {
+            mgr.CurrentSessionChanged += (a, b) => Bump.Set();
+            hookedMgr = mgr;
+        }
+        catch { }
+    }
+
     public static void Start()
     {
         try
@@ -284,7 +343,7 @@ static class Media
                 Sweep();
             }
             if (Process.GetProcessesByName("Rainmeter").Length == 0) break;
-            Thread.Sleep(Awake ? 1000 : 3000);
+            Bump.WaitOne(Awake ? 1000 : 3000);
         }
         try { key.Close(); } catch { }
     }
@@ -318,9 +377,11 @@ static class Media
         RegistryKey key, GlobalSystemMediaTransportControlsSessionManager mgr, ref string artKey)
     {
         if (mgr == null) mgr = Await(GlobalSystemMediaTransportControlsSessionManager.RequestAsync(), 5000);
-        if (mgr == null) { Quiet(key, ref artKey); return null; }
+        if (mgr == null) { Unhook(); hookedMgr = null; Quiet(key, ref artKey); return null; }
 
+        HookManager(mgr);
         var s = mgr.GetCurrentSession();
+        Hook(s);
         if (s == null) { Quiet(key, ref artKey); return mgr; }
 
         var p = Await(s.TryGetMediaPropertiesAsync(), 3000);
