@@ -107,7 +107,7 @@ local OPTIONAL_METERS = {
   'BtnL0', 'BtnL1', 'BtnL2', 'NoteLayout', 'LblShow', 'BtnSTime', 'BtnSSeconds', 'BtnSPulse', 'BtnSDay', 'BtnSDate', 'BtnSFlip',
   'LblFormat', 'BtnFmt24', 'BtnFmt12', 'LblWeight', 'BtnWPAll', 'BtnWPTime', 'BtnWPDay', 'BtnWPDate', 'BtnW300', 'BtnW400', 'BtnW700',
   'LblUnits', 'BtnU0', 'BtnU1', 'LblGpu', 'BtnG0', 'BtnG1', 'BtnG2', 'BtnG3',
-  'BtnRA0', 'BtnRA1', 'BtnMArt', 'BtnMTitle', 'BtnMArtist', 'BtnMPulse', 'BtnMBar',
+  'BtnRA0', 'BtnRA1', 'BtnMArt', 'BtnMTitle', 'BtnMArtist', 'BtnMPulse', 'BtnMBar', 'BtnMAutoHide',
 }
 local GENERAL_METERS = {
   'LblAccent', 'Sw1', 'Sw2', 'Sw3', 'Sw4', 'Sw5', 'Sw6', 'Sw7', 'Sw8', 'Sw9', 'Sw10', 'Sw11', 'Sw12',
@@ -183,6 +183,8 @@ function Render()
     SKIN:Bang(isMedia and '!ShowMeter' or '!HideMeter', 'BtnM' .. part)
     if isMedia then button('BtnM' .. part, getn('MediaShow' .. part) == 1) end
   end
+  SKIN:Bang(isMedia and '!ShowMeter' or '!HideMeter', 'BtnMAutoHide')
+  if isMedia then button('BtnMAutoHide', getn('MediaAutoHide') == 1) end
   local flips = not isClock and not isMedia and layout ~= 2
   SKIN:Bang(flips and '!ShowMeter' or '!HideMeter', 'BtnSFlip')
   SKIN:Bang((isClock or isMedia or flips) and '!ShowMeter' or '!HideMeter', 'LblShow')
@@ -382,6 +384,10 @@ end
 
 function Artwork(n)
   put('MediaDisc', n, mods) refresh('Media') Render()
+end
+
+function AutoHide()
+  put('MediaAutoHide', 1 - getn('MediaAutoHide'), mods) refresh('Media') Render()
 end
 
 function MediaToggle(part)
