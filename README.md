@@ -146,7 +146,7 @@ The checks are static. To see a change on a real desktop, copy the skin over
 an installed Kerf and let Rainmeter reload it:
 
 ```
-robocopy Skins\Kerf "%USERPROFILE%\Documents\Rainmeter\Skins\Kerf" /MIR /R:0 /W:0 /XF *.exe
+robocopy Skins\Kerf "%USERPROFILE%\Documents\Rainmeter\Skins\Kerf" /E /R:0 /W:0 /XF *.exe Variables.inc Modules.inc
 del "%USERPROFILE%\Documents\Rainmeter\Skins\Kerf\@Resources\Bin\KerfSensors.exe"
 "%PROGRAMFILES%\Rainmeter\Rainmeter.exe" !RefreshApp
 ```
@@ -155,6 +155,24 @@ Deleting the helper matters: Rainmeter only builds `KerfSensors.exe` when it
 is missing, so an old one goes on running against the new skin and the change
 looks like it did nothing. `/R:0 /W:0` stops robocopy retrying for half an
 hour over a font Rainmeter holds open.
+
+The copy has to leave the installed Kerf as you have it set up:
+
+- **`Variables.inc` and `Modules.inc` are never copied.** They hold everything
+  Customize Kerf writes -- each module's layout, size, transparency, hover,
+  alignment and visible parts, and the font, weights, accent and ink. Copying
+  the repository's over them resets all of it to the defaults. If a change
+  adds a new key to either file, add just that key to the installed file by
+  hand, keeping the file UTF-16; the `.rmskin` installer does this merge by
+  itself.
+- **Use `/E`, not `/MIR`.** `/MIR` deletes whatever the repository lacks, and
+  the installed copy holds files it deliberately lacks -- fonts that are not
+  ours to ship, such as `Cyber Track.otf` and `Track.ttf` (both gitignored),
+  are only ever there. The catch with `/E` is that a file removed from the
+  repository stays in the install until you delete it yourself.
+
+Where each module sits on screen lives in Rainmeter's own `Rainmeter.ini`,
+which the copy never touches.
 
 A module that is not running yet has to be activated once:
 

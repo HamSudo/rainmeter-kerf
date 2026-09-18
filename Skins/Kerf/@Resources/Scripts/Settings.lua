@@ -18,9 +18,9 @@ local FONTS    = {
   'Hanken Grotesk', 'JetBrains Mono', 'Rajdhani', 'Orbitron', 'Teko',
   'Audiowide', 'Russo One', 'Chakra Petch', 'Bebas Neue', 'Share Tech Mono',
   'Doto', 'Space Mono', 'Tilt Neon', 'VT323', 'Tektur',
-  'Cyber Track',
+  'Cyber Track', 'Track',
 }
-local OPTIONAL_FONTS = { ['Cyber Track'] = 'Cyber Track.otf' }
+local OPTIONAL_FONTS = { ['Cyber Track'] = 'Cyber Track.otf', ['Track'] = 'Track.ttf' }
 
 local FONT_LABELS = {}
 
@@ -70,6 +70,7 @@ local FONT_WEIGHTS = {
   ['Doto'] = { 300, 400, 700 },           ['Space Mono'] = { 400, 700 },
   ['Tilt Neon'] = { 400 },                ['VT323'] = { 400 },
   ['Tektur'] = { 400, 700 },              ['Cyber Track'] = { 400 },
+  ['Track'] = { 400 },
 }
 local WEIGHT_PARTS = { 'All', 'Time', 'Day', 'Date' }
 local weightPart = 'All'

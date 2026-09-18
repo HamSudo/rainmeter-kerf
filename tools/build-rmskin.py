@@ -14,7 +14,7 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VENDOR = os.path.join(ROOT, 'vendor', 'chameleon')
 CSC = os.path.join(os.environ.get('WINDIR', r'C:\Windows'), 'Microsoft.NET', 'Framework64', 'v4.0.30319', 'csc.exe')
-SKIP_FILES = {'cyber track.otf'}
+SKIP_FILES = {'cyber track.otf', 'track.ttf'}
 SKIP_EXT = {'.exe', '.log', '.pdb'}
 
 RMSKIN_INI = """[rmskin]
