@@ -5,6 +5,7 @@
 ; FirstRun 1 = turn on CPU, GPU and the panel the first time the clock loads.
 ; ClockLayout 0 classic, 1 vertical, 2 horizontal. CPU/GPULayout 0 horizontal, 1 vertical, 2 gauge.
 ; MediaDisc 0 square cover, 1 spinning disc.
+; MediaAutoHide 1 = fade the card away while nothing is playing.
 [Variables]
 ClockSize=100
 ClockAutoScale=1.00
@@ -53,4 +54,5 @@ MediaShowTitle=1
 MediaShowArtist=1
 MediaShowPulse=1
 MediaShowBar=1
+MediaAutoHide=1
 FirstRun=1

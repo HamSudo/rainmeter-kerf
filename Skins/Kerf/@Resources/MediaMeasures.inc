@@ -55,7 +55,9 @@ RegHKey=HKEY_CURRENT_USER
 RegKey=Software\Kerf\Media
 RegValue=Disc
 
+; deliberately not in the Live group: a hidden card is not on screen for the
+; helper to see, and were it the only module up the group would pause -- with
+; nothing left running to notice that something started playing again
 [mMedia]
 Measure=Script
-Group=Live
 ScriptFile=#@#Scripts\Media.lua

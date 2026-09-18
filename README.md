@@ -80,7 +80,14 @@ plugin is involved.
 The cover is drawn either as a square or as a disc that turns while the track
 plays and coasts to a stop when it is paused. Kerf cuts the disc itself, hole
 and all, from the artwork the session hands over. A track with no artwork gets
-a quiet placeholder instead, and when nothing is playing the card says so.
+a quiet placeholder instead.
+
+With nothing playing the card fades away, and fades back when something
+starts. A paused track keeps it up -- a pause is usually a moment long, and
+the card is what tells you where you left off -- and it waits a couple of
+seconds before going, so skipping a track cannot make it flicker away and
+straight back. Turn **Auto-hide** off in the panel and it stays put, saying
+that nothing is playing.
 
 Cover, title, artist, pulse and progress bar can each be turned off in the
 panel; the rows close up over whatever is hidden. A live stream has no end, so

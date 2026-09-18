@@ -4,6 +4,7 @@
 
 local SPIN = 30          -- degrees a second, a turn slow enough to read
 local STALE = 15         -- seconds before a silent helper is treated as stopped
+local SETTLE = 2         -- seconds of nothing playing before the card goes
 
 local function num(v) return tonumber(SKIN:ParseFormula(SKIN:ReplaceVariables(v))) or 0 end
 
@@ -25,6 +26,8 @@ function Initialize()
   idle = SELF:GetOption('Idle', 'Nothing playing')
   spin, rate, last = 0, 0, os.clock()
   posRaw, posBase, posAt = nil, 0, os.clock()
+  -- the card starts shown; whether it stays up is settled on the first update
+  up, idleSince = true, nil
   shown = {}
 end
 
@@ -95,6 +98,29 @@ function Update()
   if pos < 0 then pos = 0 end
   if len > 0 and pos > len then pos = len end
 
+  -- A stopped session hides the card, a paused one does not: a pause is
+  -- usually a moment long, and the card is what tells you where you left off.
+  -- Waiting a couple of seconds first means a track change, which reads as
+  -- stopped in passing, cannot make it flicker away and straight back.
+  if num('#AutoHide#') == 1 then
+    if st == 0 then
+      idleSince = idleSince or now
+      if up and now - idleSince >= SETTLE then
+        up = false
+        SKIN:Bang('!HideFade')
+      end
+    else
+      idleSince = nil
+      if not up then
+        up = true
+        SKIN:Bang('!ShowFade')
+      end
+    end
+  elseif not up then
+    up = true
+    SKIN:Bang('!ShowFade')
+  end
+
   local dirty = false
   if st == 0 then
     dirty = set('MeterTitle', 'Text', idle) or dirty
@@ -125,7 +151,7 @@ function Update()
     dirty = true
   end
 
-  if dirty then
+  if dirty and up then
     SKIN:Bang('!UpdateMeter', '*')
     SKIN:Bang('!Redraw')
   end
