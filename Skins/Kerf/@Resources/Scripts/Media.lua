@@ -1,6 +1,6 @@
 -- The media card's moving parts: the track's text, how far through it is,
 -- and the angle of the disc. KerfSensors writes the session to the registry
--- once a second; everything here is read from those measures.
+-- as it changes; everything here is read from those measures.
 
 local SPIN = 30          -- degrees a second, a turn slow enough to read
 local STALE = 15         -- seconds before a silent helper is treated as stopped
@@ -24,6 +24,7 @@ function Initialize()
   cardH, pad = SKIN:GetMeasure('mCardH'), SKIN:GetMeasure('mPad')
   idle = SELF:GetOption('Idle', 'Nothing playing')
   spin, rate, last = 0, 0, os.clock()
+  posRaw, posBase, posAt = nil, 0, os.clock()
   shown = {}
 end
 
@@ -79,7 +80,19 @@ function Update()
   local name = str(title)
   if name == '' then st = 0 end
 
-  local pos, len = val(posM), val(lenM)
+  -- The helper reports where the track had got to and when it said so, not
+  -- a running position -- so stepping straight from the registry moved the
+  -- bar once a reading and left it sitting still in between. Each new
+  -- reading is noted and then carried forward on the frame clock, which also
+  -- covers the gap while the skin is paused behind a window: on coming back
+  -- the elapsed time is simply counted in rather than waiting for a write.
+  local len = val(lenM)
+  local raw = str(posM)
+  if raw ~= posRaw then
+    posRaw, posBase, posAt = raw, val(posM), now
+  end
+  local pos = posBase + ((st == 1) and (now - posAt) or 0)
+  if pos < 0 then pos = 0 end
   if len > 0 and pos > len then pos = len end
 
   local dirty = false

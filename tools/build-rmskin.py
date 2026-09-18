@@ -51,7 +51,12 @@ REFS = ['System.Drawing.dll',
         os.path.join(WINMD, 'Windows.Media.winmd'),
         os.path.join(WINMD, 'Windows.Storage.winmd'),
         os.path.join(WINDIR, 'Microsoft.NET', 'assembly', 'GAC_MSIL', 'System.Runtime',
-                     'v4.0_4.0.0.0__b03f5f7f11d50a3a', 'System.Runtime.dll')]
+                     'v4.0_4.0.0.0__b03f5f7f11d50a3a', 'System.Runtime.dll'),
+        # the media session's change events need the WinRT projection
+        os.path.join(WINDIR, 'Microsoft.NET', 'assembly', 'GAC_MSIL',
+                     'System.Runtime.InteropServices.WindowsRuntime',
+                     'v4.0_4.0.0.0__b03f5f7f11d50a3a',
+                     'System.Runtime.InteropServices.WindowsRuntime.dll')]
 
 
 def build_helper(skin):

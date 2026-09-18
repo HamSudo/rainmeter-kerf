@@ -65,7 +65,7 @@ Timeout=-1
 Measure=Plugin
 Plugin=RunCommand
 Program="%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-Parameter=/nologo /target:winexe /optimize /r:System.Drawing.dll /r:"%WINDIR%\System32\WinMetadata\Windows.Foundation.winmd" /r:"%WINDIR%\System32\WinMetadata\Windows.Media.winmd" /r:"%WINDIR%\System32\WinMetadata\Windows.Storage.winmd" /r:"%WINDIR%\Microsoft.NETssembly\GAC_MSIL\System.Runtime4.0_4.0.0.0__b03f5f7f11d50a3a\System.Runtime.dll" /out:"#@#Bin\KerfSensors.exe" "#@#Bin\KerfSensors.cs"
+Parameter=/nologo /target:winexe /optimize /r:System.Drawing.dll /r:"%WINDIR%\System32\WinMetadata\Windows.Foundation.winmd" /r:"%WINDIR%\System32\WinMetadata\Windows.Media.winmd" /r:"%WINDIR%\System32\WinMetadata\Windows.Storage.winmd" /r:"%WINDIR%\Microsoft.NETssembly\GAC_MSIL\System.Runtime4.0_4.0.0.0__b03f5f7f11d50a3a\System.Runtime.dll" /r:"%WINDIR%\Microsoft.NET\assembly\GAC_MSIL\System.Runtime.InteropServices.WindowsRuntime\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Runtime.InteropServices.WindowsRuntime.dll" /out:"#@#Bin\KerfSensors.exe" "#@#Bin\KerfSensors.cs"
 State=Hide
 FinishAction=[!CommandMeasure mLaunch "Run"]
 
